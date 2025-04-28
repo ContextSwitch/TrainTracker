@@ -26,10 +26,15 @@ export default function Home() {
   // State to track loading and errors
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+  console.log(
+    "loading page"
+  )
   // Function to fetch the current status
   const fetchCurrentStatus = async () => {
     try {
+      console.log(
+        "in fetchCurrentStatus"
+      )
       setLoading(true);
       setError(null);
       
@@ -54,6 +59,8 @@ export default function Home() {
       const train3Data = await train3Response.json();
       const train4Data = await train4Response.json();
       
+      console.log("Lookup response = ", train3Response, train4Response)
+
       // Store all train instances
       if (train3Data && train3Data.length > 0) {
         setTrain3Status(train3Data[0]); // Keep the first one as the primary status
@@ -110,9 +117,23 @@ export default function Home() {
         throw new Error(`Error selecting station: ${response.statusText}`);
       }
       
-      // Update the current status with the response
+      // Update the current status with the response, but preserve the message
       const updatedStatus = await response.json();
-      setCurrentStatus(updatedStatus);
+      
+      // Only update the selected train's information, not the entire status
+      setCurrentStatus(prevStatus => {
+        if (trainId === '3') {
+          return {
+            ...prevStatus,
+            train3: updatedStatus.train3
+          };
+        } else {
+          return {
+            ...prevStatus,
+            train4: updatedStatus.train4
+          };
+        }
+      });
     } catch (err) {
       console.error('Error selecting station:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -207,6 +228,7 @@ export default function Home() {
           <TrainStatusComponent
             trainId="3"
             trainStatus={train3Status}
+            direction="Los Angeles"
             approaching={currentStatus.train3}
             allTrainStatuses={train3Statuses}
             onSelectStation={handleSelectStation}
@@ -214,6 +236,7 @@ export default function Home() {
           <TrainStatusComponent
             trainId="4"
             trainStatus={train4Statuses.length > 0 ? train4Statuses[0] : null}
+            direction="Chicago"
             approaching={currentStatus.train4}
             allTrainStatuses={train4Statuses}
             onSelectStation={handleSelectStation}

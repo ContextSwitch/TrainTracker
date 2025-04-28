@@ -33,14 +33,18 @@ export default function handler(
       
       // Read the file
       const data = fs.readFileSync(trainStatusFile, 'utf8');
-      const trainData = JSON.parse(data);
+
+      if(data){
+        const trainData = JSON.parse(data);
       
-      // Return the train status data for the specified train
-      if (trainData[trainId as string]) {
-        return res.status(200).json(trainData[trainId as string]);
-      } else {
-        return res.status(404).json([]);
+        // Return the train status data for the specified train
+        if (trainData[trainId as string]) {
+          return res.status(200).json(trainData[trainId as string]);
+        } else {
+          return res.status(404).json([]);
+        } 
       }
+
     } catch (error) {
       console.error('Error reading train status file:', error);
       return res.status(500).json([]);

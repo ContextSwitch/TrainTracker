@@ -6,23 +6,23 @@ import { appConfig, getStationByName, getYoutubeEmbedUrl } from '../config';
  * @param stationName The name of the station
  * @returns The time zone offset in hours
  */
-function getStationTimeZoneOffset(stationName: string): number {
+export function getStationTimeZoneOffset(stationName: string): number {
   // Pacific Time Zone stations (UTC-8 standard, UTC-7 daylight)
   const pacificStations = [
     'Los Angeles', 'Fullerton', 'Riverside', 'San Bernardino', 
-    'Victorville', 'Barstow', 'Needles'
+    'Victorville', 'Barstow - Harvey House Railroad Depot', 'Needles', 'Flagstaff - Amtrak Station','Winslow'
   ];
   
   // Mountain Time Zone stations (UTC-7 standard, UTC-6 daylight)
   const mountainStations = [
-    'Kingman', 'Flagstaff', 'Winslow', 'Gallup', 'Albuquerque',
+    'Kingman', 'Gallup', 'Albuquerque',
     'Lamy', 'Las Vegas', 'Raton', 'Trinidad', 'La Junta'
   ];
   
   // Central Time Zone stations (UTC-6 standard, UTC-5 daylight)
   const centralStations = [
     'Garden City', 'Dodge City', 'Hutchinson', 'Newton', 'Topeka',
-    'Lawrence', 'Santa Fe Junction/Kansas City', 'La Plata', 'Fort Madison', 'Galesburg'
+    'Lawrence', 'Kansas City - Union Station', 'La Plata', 'Fort Madison', 'Galesburg'
   ];
   
   // Eastern Time Zone stations (UTC-5 standard, UTC-4 daylight)
@@ -57,7 +57,7 @@ export function checkTrainApproaching(trainStatus: TrainStatus): TrainApproachin
   };
   
   // If we don't have next station or ETA information, we can't determine if approaching
-  if (!trainStatus.nextStation || !trainStatus.estimatedArrival) {
+  if (!trainStatus?.nextStation || !trainStatus?.estimatedArrival) {
     return notApproaching;
   }
   
@@ -70,7 +70,13 @@ export function checkTrainApproaching(trainStatus: TrainStatus): TrainApproachin
   // Calculate minutes until arrival
   const now = new Date();
   const eta = new Date(trainStatus.estimatedArrival);
+  
+  // Log for debugging
+  console.log(`checkTrainApproaching for ${trainStatus.trainId} to ${trainStatus.nextStation}:`);
+  console.log(`ETA from data: ${eta.toISOString()}, Now: ${now.toISOString()}`);
+  
   const minutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
+  console.log(`Minutes away: ${minutesAway}`);
   
   // Check if the train is within the approach window or post-arrival window
   // Show the webcam if the train is expected to arrive within X minutes
@@ -139,12 +145,18 @@ export function findNextRailcamStation(trainStatus: TrainStatus | TrainStatus[])
       // Calculate minutes until arrival
       const now = new Date();
       const eta = new Date(trainStatus.estimatedArrival);
+      
+      // Log for debugging
+      console.log(`findNextRailcamStation for ${trainStatus.trainId} to ${trainStatus.nextStation}:`);
+      console.log(`ETA from data: ${eta.toISOString()}, Now: ${now.toISOString()}`);
+      
       const minutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
+      console.log(`Minutes away: ${minutesAway}`);
       
       return {
         station,
         estimatedArrival: trainStatus.estimatedArrival,
-        minutesAway: minutesAway >= 0 ? minutesAway : 0
+        minutesAway: minutesAway
       };
     }
   }
@@ -153,9 +165,9 @@ export function findNextRailcamStation(trainStatus: TrainStatus | TrainStatus[])
   // The order is based on the train's direction
   const westboundRoute = [
     'Chicago', 'Naperville', 'Mendota', 'Princeton', 'Galesburg', 'Fort Madison', 'La Plata', 
-    'Santa Fe Junction/Kansas City', 'Lawrence', 'Topeka', 'Newton', 'Hutchinson', 'Dodge City', 'Garden City', 
+    'Kansas City - Union Station', 'Lawrence', 'Topeka', 'Newton', 'Hutchinson', 'Dodge City', 'Garden City', 
     'Lamar', 'La Junta', 'Trinidad', 'Raton', 'Las Vegas', 'Lamy', 'Albuquerque', 'Gallup', 
-    'Winslow', 'Flagstaff', 'Kingman', 'Needles', 'Barstow', 'Victorville', 'San Bernardino', 
+    'Winslow', 'Flagstaff - Amtrak Station', 'Kingman', 'Needles', 'Barstow - Harvey House Railroad Depot', 'Victorville', 'San Bernardino', 
     'Riverside', 'Fullerton', 'Los Angeles'
   ];
   
@@ -237,16 +249,51 @@ export function generateStatusMessage(
   approaching: TrainApproaching
 ): string {
   if (approaching.approaching && approaching.station && approaching.minutesAway !== undefined) {
-    if (approaching.minutesAway >= 0) {
-      return `Train #${trainStatus.trainId} is approaching ${approaching.station.name} and will arrive in approximately ${approaching.minutesAway} minutes.`;
-    } else {
+    // Get the current time and the estimated arrival time
+    const now = new Date();
+    const eta = approaching.eta ? new Date(approaching.eta) : null;
+    
+    // Calculate the actual minutes away based on the current time and ETA
+    let actualMinutesAway = approaching.minutesAway;
+    if (eta) {
+      actualMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
+    }
+    
+    // Log for debugging
+    console.log(`----Train #${trainStatus.trainId} to ${approaching.station.name}:`, trainStatus,approaching);
+    console.log(`ETA: ${eta ? eta.toISOString() : 'unknown'}, Now: ${now.toISOString()}`);
+    console.log(`Minutes away from API: ${approaching.minutesAway}, Calculated: ${actualMinutesAway}`);
+    
+    // Include instance ID if available
+    const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
+    
+    // Include timezone if available
+    const timezoneInfo = trainStatus.timezone ? ` ${trainStatus.timezone}` : '';
+    
+    // Only show "arrived" message if the train has actually arrived (ETA is in the past)
+    if (eta && now > eta && actualMinutesAway < -2) {
       // Train has already arrived, but we're still showing the webcam
-      const minutesPast = Math.abs(approaching.minutesAway);
-      return `Train #${trainStatus.trainId} arrived at ${approaching.station.name} approximately ${minutesPast} minutes ago.`;
+      const minutesPast = Math.abs(actualMinutesAway);
+      return `Train #${trainStatus.trainId}${instanceInfo} arrived at ${approaching.station.name} approximately ${minutesPast} minutes ago${timezoneInfo}.`;
+    } else {
+      // Train is still approaching or just arrived
+      return `Train #${trainStatus.trainId}${instanceInfo} is approaching ${approaching.station.name} and will arrive in approximately ${Math.max(0, actualMinutesAway)} minutes${timezoneInfo}.`;
     }
   } else if (trainStatus.currentLocation && trainStatus.nextStation) {
-    return `Train #${trainStatus.trainId} is currently at ${trainStatus.currentLocation} and heading to ${trainStatus.nextStation}.`;
+    // Include instance ID if available
+    const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
+    
+    // Include timezone if available
+    const timezoneInfo = trainStatus.timezone ? ` ${trainStatus.timezone}` : '';
+    
+    // Include departed status if available
+    const departedInfo = trainStatus.departed ? ' (Departed)' : '';
+    
+    return `Train #${trainStatus.trainId}${instanceInfo} is currently at ${trainStatus.currentLocation} and heading to ${trainStatus.nextStation}${departedInfo}${timezoneInfo}.`;
   } else {
-    return `Train #${trainStatus.trainId} status: ${trainStatus.status}`;
+    // Include instance ID if available
+    const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
+    
+    return `Train #${trainStatus.trainId}${instanceInfo} status: ${trainStatus.status}`;
   }
 }

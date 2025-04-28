@@ -5,6 +5,7 @@ import TrainInstance from './TrainInstance';
 
 interface TrainStatusProps {
   trainId: string;
+  direction: string;
   trainStatus: TrainStatusType | null;
   approaching: TrainApproaching;
   allTrainStatuses?: TrainStatusType[];
@@ -17,6 +18,7 @@ interface TrainStatusProps {
 const TrainStatus: React.FC<TrainStatusProps> = ({
   trainId,
   trainStatus,
+  direction,
   approaching,
   allTrainStatuses = [],
   onSelectStation = () => {}
@@ -61,7 +63,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
   return (
     <div className={`p-4 border rounded-lg ${statusColor}`}>
       <h3 className="text-lg font-semibold dark:text-white">
-        Train #{trainId} - {trainStatus.direction === 'eastbound' ? 'Eastbound' : 'Westbound'}
+        SWC #{trainId} - {direction}
       </h3>
       
       <div className="mt-2">
@@ -98,21 +100,40 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
           {/* If there are multiple instances, show each one */}
           {hasMultipleInstances ? (
             <div>
-              {allTrainStatuses.map((status, index) => (
-                <TrainInstance
-                  key={`${status.trainId}-${index}-${status.nextStation || 'unknown'}`}
-                  trainStatus={status}
-                  isSelected={selectedStationName === findNextRailcamStation(status)?.station.name}
-                  onSelectStation={onSelectStation}
-                  instanceId={index}
-                />
-              ))}
+              {allTrainStatuses
+                // Filter out departed stations
+                .filter(status => !status.departed)
+                .map((status, index) => {
+                  // Check if this status matches the approaching station
+                  const isApproaching = approaching.approaching && 
+                    approaching.station && 
+                    status.nextStation === approaching.station.name;
+                  
+                  // If this is the approaching station, update its ETA
+                  const updatedStatus = isApproaching ? {
+                    ...status,
+                    estimatedArrival: approaching.eta || status.estimatedArrival
+                  } : status;
+                  
+                  return (
+                    <TrainInstance
+                      key={`${status.trainId}-${index}-${status.nextStation || 'unknown'}`}
+                      trainStatus={updatedStatus}
+                      isSelected={selectedStationName === findNextRailcamStation(status)?.station.name}
+                      onSelectStation={onSelectStation}
+                      instanceId={index}
+                    />
+                  );
+                })}
             </div>
           ) : (
             // If there's only one instance, show it
             trainStatus && (
               <TrainInstance
-                trainStatus={trainStatus}
+                trainStatus={approaching.approaching && approaching.eta ? {
+                  ...trainStatus,
+                  estimatedArrival: approaching.eta
+                } : trainStatus}
                 isSelected={!!selectedStationName}
                 onSelectStation={onSelectStation}
                 instanceId={0}
@@ -120,10 +141,6 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
             )
           )}
         </div>
-        
-        <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-          Last updated: {trainStatus.lastUpdated ? new Date(trainStatus.lastUpdated).toLocaleString() : 'Unknown'}
-        </p>
       </div>
     </div>
   );

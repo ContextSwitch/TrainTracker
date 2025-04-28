@@ -2,9 +2,13 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
 import { appConfig } from '../../app/config';
-import { scrapeTrainStatus, mockTrainStatus } from '../../app/utils/scraper';
+import { scrapeTrainStatus } from '../../app/utils/scraper';
 import { TrainStatus, CurrentStatus, TrainApproaching } from '../../app/types';
 import { checkTrainApproaching } from '../../app/utils/predictions';
+import TrainInstance from '@/app/components/TrainInstance';
+import { transcode } from 'buffer';
+import { transformSync } from 'next/dist/build/swc/generated-native';
+import { all } from 'axios';
 
 type CronResponse = {
   success: boolean;
@@ -30,10 +34,10 @@ export default async function handler(
     return;
   }
   
-  // Check if it's been at least 30 minutes since the last run
+  // Check if it's been at least 15 minutes since the last run
   // This prevents excessive scraping if the cron job is called too frequently
   const now = new Date();
-  if (lastRun && (now.getTime() - lastRun.getTime()) < 5 * 60 * 1000) {
+  if (lastRun && (now.getTime() - lastRun.getTime()) < 0 * 60 * 1000) {
     return res.status(200).json({
       success: true,
       message: 'Skipped update - last update was less than 30 minutes ago',
@@ -53,28 +57,20 @@ export default async function handler(
     try {
       console.log('Scraping data for train #3...');
       const scraped3 = await scrapeTrainStatus(appConfig.trainUrls['3'], '3');
-      train3Statuses = scraped3.length > 0 ? scraped3 : mockTrainStatus('3');
-      
+      train3Statuses = scraped3
       console.log('Scraping data for train #4...');
       const scraped4 = await scrapeTrainStatus(appConfig.trainUrls['4'], '4');
-      train4Statuses = scraped4.length > 0 ? scraped4 : mockTrainStatus('4');
+      train4Statuses = scraped4
       
       console.log('Scraping completed successfully');
     } catch (scrapeError) {
       console.error('Error scraping train data, falling back to mock data:', scrapeError);
-      train3Statuses = mockTrainStatus('3');
-      train4Statuses = mockTrainStatus('4');
     }
     
     // Save the train status data
     console.log("scrapeTrainStatus = ", train3Statuses, train4Statuses)
-    for (const status of train3Statuses) {
-      saveTrainStatus(status);
-    }
-    
-    for (const status of train4Statuses) {
-      saveTrainStatus(status);
-    }
+    saveTrains(train3Statuses);
+    saveTrains(train4Statuses);
     
     // Update the current status
     updateCurrentStatus(train3Statuses[0], train4Statuses[0]);
@@ -91,6 +87,32 @@ export default async function handler(
       success: false,
       message: `Error updating train data: ${error instanceof Error ? error.message : String(error)}`
     });
+  }
+}
+
+function saveTrains(trainStatus: TrainStatus[]){
+  // Get all unique instance IDs
+  let allInstances = trainStatus.map(status => {
+    return status.instanceId;
+  });
+
+  let instances = [...new Set(allInstances)];
+
+  // Process each instance
+  for(let instance of instances){
+    // Initialize with the first status for this instance
+    let nearestStation: TrainStatus | null = null;
+
+    let currentInstance = trainStatus[0].instanceId;
+
+    saveTrainStatus(trainStatus[0]);
+
+    for(let status of trainStatus){
+      if(status.instanceId != currentInstance){
+        saveTrainStatus(status);
+        currentInstance = status.instanceId;
+      }
+    }
   }
 }
 
@@ -119,43 +141,22 @@ function saveTrainStatus(trainStatus: TrainStatus): void {
     }
   }
   
-  // For this demo, we'll use fixed train instances instead of adding new ones
-  // This ensures we have the correct number of train instances for each train
-  if (trainStatus.trainId === '3') {
-    // For Train #3, we'll have 1 instance
-    trainData['3'] = [
-      {
-        trainId: '3',
-        direction: 'westbound',
-        lastUpdated: new Date().toISOString(),
-        status: 'On time',
-        nextStation: 'Gallup',
-        estimatedArrival: new Date(Date.now() + 6 * 60 * 60000).toISOString(), // 6 hours from now
-        currentLocation: 'En route'
-      }
-    ];
-  } else if (trainStatus.trainId === '4') {
-    // For Train #4, we'll have 2 instances
-    trainData['4'] = [
-      {
-        trainId: '4',
-        direction: 'eastbound',
-        lastUpdated: new Date().toISOString(),
-        status: 'On time',
-        nextStation: 'Fort Madison',
-        estimatedArrival: new Date(Date.now() + 55 * 60000).toISOString(), // 55 minutes from now
-        currentLocation: 'En route'
-      },
-      {
-        trainId: '4',
-        direction: 'eastbound',
-        lastUpdated: new Date().toISOString(),
-        status: 'On time',
-        nextStation: 'Las Vegas',
-        estimatedArrival: new Date(Date.now() + 2 * 60 * 60000).toISOString(), // 2 hours from now
-        currentLocation: 'En route'
-      }
-    ];
+  // Update or add the train status to the data
+  if (!trainData[trainStatus.trainId]) {
+    trainData[trainStatus.trainId] = [];
+  }
+  
+  // Check if this is a new instance or an update to an existing one
+  const existingIndex = trainData[trainStatus.trainId].findIndex(
+    status => status.instanceId === trainStatus.instanceId
+  );
+  
+  if (existingIndex >= 0) {
+    // Update existing instance
+    trainData[trainStatus.trainId][existingIndex] = trainStatus;
+  } else {
+    // Add new instance
+    trainData[trainStatus.trainId].push(trainStatus);
   }
   
   // Write the data back to the file
@@ -187,10 +188,13 @@ function updateCurrentStatus(train3Status: TrainStatus, train4Status: TrainStatu
   if (fs.existsSync(trainStatusFile)) {
     try {
       const data = fs.readFileSync(trainStatusFile, 'utf8');
-      const trainData = JSON.parse(data);
-      if (trainData['4'] && Array.isArray(trainData['4'])) {
-        allTrain4Statuses = trainData['4'];
+      if(data){
+        const trainData = JSON.parse(data);
+        if (trainData['4'] && Array.isArray(trainData['4'])) {
+          allTrain4Statuses = trainData['4'];
+        }
       }
+
     } catch (error) {
       console.error('Error reading train status file:', error);
     }

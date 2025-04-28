@@ -43,9 +43,9 @@ export function saveTrainStatus(trainStatus: TrainStatus): void {
   // This ensures we have the correct number of train instances for each train
   if (trainStatus.trainId === '3') {
     // For Train #3, we'll have 1 instance
-    if (!trainData['3']) {
+   
       trainData['3'] = [];
-    }
+    
     
     // Check if we already have an instance with this nextStation
     const existingIndex = trainData['3'].findIndex(
@@ -66,9 +66,8 @@ export function saveTrainStatus(trainStatus: TrainStatus): void {
     }
   } else if (trainStatus.trainId === '4') {
     // For Train #4, we'll have 2 instances
-    if (!trainData['4']) {
       trainData['4'] = [];
-    }
+    
     
     // Check if we already have an instance with this nextStation
     const existingIndex = trainData['4'].findIndex(

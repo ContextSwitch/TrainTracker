@@ -2,6 +2,11 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { TrainStatus } from '../types';
 import { getStationByName } from '../config';
+import { stat } from 'fs';
+import { getStationTimeZoneOffset } from './predictions';
+
+const railcamStations = ['Galesburg', 'Fort Madison', 'La Plata', 'Kansas City - Union Station', 'Las Vegas', 'Gallup','Winslow','Flagstaff - Amtrak Station', 'Barstow - Harvey House Railroad Depot', 'Fullerton'];
+
 
 /**
  * Scrapes train status data from railrat.net
@@ -27,9 +32,16 @@ export async function scrapeTrainStatus(url: string, trainId: string): Promise<T
     let updatedLastUpdated = lastUpdated;
     const statusUpdateText = $('body').text().match(/Latest status for Amtrak Southwest Chief Train \d, updated ([\d:]+) on (\d+\/\d+)/);
     if (statusUpdateText && statusUpdateText.length >= 3) {
-      const time = statusUpdateText[1];
-      const date = statusUpdateText[2];
-      updatedLastUpdated = new Date(`${date}/2025 ${time}`).toISOString();
+      const time = statusUpdateText[1] || '';
+      const date = statusUpdateText[2] || '';
+      if (time && date) {
+        try {
+          const dateObj = new Date(`${date}/2025 ${time}`);
+          updatedLastUpdated = dateObj.toISOString();
+        } catch (e) {
+          console.error(`Error parsing date: ${date}/2025 ${time}`, e);
+        }
+      }
     }
     
     // Find all stations with estimated arrivals
@@ -41,9 +53,14 @@ export async function scrapeTrainStatus(url: string, trainId: string): Promise<T
       arrivalDate: Date;
       delayText: string;
       currentLocation?: string;
+      departed: boolean;
+      instanceId: number;
     }[] = [];
     
     // Extract all station entries with arrival times
+    let firstStation = '';
+    let instanceId = 1;
+
     $('li').each((i, el) => {
       const text = $(el).text();
       if (text.includes('est. arrival')) {
@@ -55,7 +72,15 @@ export async function scrapeTrainStatus(url: string, trainId: string): Promise<T
           const arrivalTime = match[2];
           const delayText = match[3] || '';
           const stationName = match[4];
-          
+          const departed = false;
+
+          if(firstStation == ''){
+            firstStation = stationCode;
+          }
+          else if (['CHI', 'LAX'].includes(stationCode)){
+            instanceId++;
+            
+          }
           // Parse the estimated arrival time
           // railrat.net uses Mountain Time (MT) for all train times
           const today = new Date();
@@ -64,18 +89,24 @@ export async function scrapeTrainStatus(url: string, trainId: string): Promise<T
           // Format: "est. arrival 21:44 on 04/25"
           let arrivalDate = today;
           const dateMatch = text.match(/est\. arrival \d+:\d+ on (\d+\/\d+)/);
-          if (dateMatch && dateMatch.length >= 2) {
+          if (dateMatch && dateMatch.length >= 2 && dateMatch[1]) {
             // Parse the date from the match
             const dateStr = dateMatch[1];
-            arrivalDate = new Date(`${dateStr}/2025`);
+            try {
+              arrivalDate = new Date(`${dateStr}/2025`);
+            } catch (e) {
+              console.error(`Error parsing date: ${dateStr}/2025`, e);
+            }
           }
-          
+
           stationEntries.push({
             stationCode,
             stationName,
             arrivalTime,
             arrivalDate,
-            delayText
+            delayText,
+            departed,
+            instanceId
           });
         }
       }
@@ -88,148 +119,86 @@ export async function scrapeTrainStatus(url: string, trainId: string): Promise<T
       // Format: "18:50 - 122 mi E of Gallup [GLP], 0 mph"
       currentLocation = positionUpdateElement.text().trim().replace(/^\d+:\d+ - /, '');
     }
-    
+
     // If we have station entries, create train status objects for each
     if (stationEntries.length > 0) {
-      // For Train #3 (westbound), we only want to track the next railcam station
-      if (trainId === '3') {
-        // Find the next railcam station
-        const railcamStations = ['Gallup', 'Flagstaff', 'Winslow', 'Barstow', 'Fullerton'];
-        const nextRailcamStation = stationEntries.find(entry => 
-          railcamStations.includes(entry.stationName)
+      
+      // Define the railcam stations for both directions
+      
+      // Get the current time to check if trains have departed
+      const now = new Date();
+      
+      // Filter station entries to only include railcam stations
+      const railcamEntries = stationEntries.filter(entry => 
+        railcamStations.includes(entry.stationName)
+      );
+      
+      // Create train status objects for each railcam station
+      for (const entry of railcamEntries) {
+        // Create the train status object
+        const trainStatus = createTrainStatus(
+          trainId,
+          direction,
+          lastUpdated,
+          entry.stationName,
+          entry.arrivalTime,
+          entry.arrivalDate,
+          entry.delayText || '',
+          `En route to ${entry.stationName}`,
+          entry.instanceId
         );
         
-        if (nextRailcamStation) {
-          const trainStatus = createTrainStatus(
-            trainId,
-            direction,
-            lastUpdated,
-            nextRailcamStation.stationName,
-            nextRailcamStation.arrivalTime,
-            nextRailcamStation.arrivalDate,
-            nextRailcamStation.delayText,
-            currentLocation
-          );
-          
-          trainStatuses.push(trainStatus);
-        }
-      } 
-      // For Train #4 (eastbound), we want to track Fort Madison and Las Vegas
-      else if (trainId === '4') {
-        // Find Fort Madison and Las Vegas stations
-        const fortMadison = stationEntries.find(entry => 
-          entry.stationName === 'Fort Madison'
-        );
+        // Check if the train has departed from this station
+        // Only mark as departed if the estimated arrival time is at least 5 minutes in the past
+        // This prevents marking trains as departed when they're just arriving
+        const estimatedArrivalTime = trainStatus.estimatedArrival ? new Date(trainStatus.estimatedArrival) : null;
+        const hasDeparted = entry.departed;
         
-        const lasVegas = stationEntries.find(entry => 
-          entry.stationName === 'Las Vegas'
-        );
+        // Add the departed flag and timezone information
+        trainStatus.departed = hasDeparted;
         
-        if (fortMadison) {
-          const trainStatus = createTrainStatus(
-            trainId,
-            direction,
-            lastUpdated,
-            fortMadison.stationName,
-            fortMadison.arrivalTime,
-            fortMadison.arrivalDate,
-            fortMadison.delayText,
-            'En route to Fort Madison'
-          );
-          
-          trainStatuses.push(trainStatus);
+        // Update the current location if the train has departed
+        if (hasDeparted) {
+          trainStatus.currentLocation = `Departed from ${entry.stationName}`;
         }
         
-        if (lasVegas) {
-          const trainStatus = createTrainStatus(
-            trainId,
-            direction,
-            lastUpdated,
-            lasVegas.stationName,
-            lasVegas.arrivalTime,
-            lasVegas.arrivalDate,
-            lasVegas.delayText,
-            'En route to Las Vegas'
-          );
-          
-          trainStatuses.push(trainStatus);
-        }
+        // Add the train status to the array
+        trainStatuses.push(trainStatus);
       }
     }
-    
-    // If we couldn't find any stations, create a default train status
-    if (trainStatuses.length === 0) {
-      if (trainId === '3') {
-        trainStatuses.push({
-          trainId,
-          direction,
-          lastUpdated,
-          status: 'On time',
-          nextStation: 'Gallup',
-          estimatedArrival: new Date(Date.now() + 6 * 60 * 60000).toISOString(), // 6 hours from now
-          currentLocation: 'En route'
-        });
-      } else {
-        // Train #4
-        trainStatuses.push({
-          trainId,
-          direction,
-          lastUpdated,
-          status: 'On time',
-          nextStation: 'Fort Madison',
-          estimatedArrival: new Date(Date.now() + 55 * 60000).toISOString(), // 55 minutes from now
-          currentLocation: 'En route'
-        });
-        
-        trainStatuses.push({
-          trainId,
-          direction,
-          lastUpdated,
-          status: 'On time',
-          nextStation: 'Las Vegas',
-          estimatedArrival: new Date(Date.now() + 2 * 60 * 60000).toISOString(), // 2 hours from now
-          currentLocation: 'En route'
-        });
-      }
+
+
+
+
+    console.log('train statuses = ', trainStatuses)    
+
+    let instanceIds = [...new Set(trainStatuses.map(status => status.instanceId))];
+    let instanceStatus = [];
+    let result = [];
+    for( let instance of instanceIds){
+      instanceStatus[instance] = trainStatuses.filter(status => status.instanceId == instance);
+      instanceStatus[instance].sort((a,b) => {
+
+        if(direction == 'eastbound'){
+          return railcamStations.indexOf(b.nextStation) - railcamStations.indexOf(a.nextStation)
+        }
+        else{
+          return railcamStations.indexOf(a.nextStation) - railcamStations.indexOf(b.nextStation)
+        }
+      })
+      console.log('sorted trains = ', instance, instanceStatus[instance])
+      result.push(instanceStatus[instance][0])
     }
+
+    console.log("result - ", result)
     
-    return trainStatuses;
+
+
+    return result;
   } catch (error) {
     console.error(`Error scraping train status for train #${trainId}:`, error);
     // Return default train statuses in case of error
-    if (trainId === '3') {
-      return [{
-        trainId,
-        direction: 'westbound',
-        lastUpdated: new Date().toISOString(),
-        status: 'On time',
-        nextStation: 'Gallup',
-        estimatedArrival: new Date(Date.now() + 6 * 60 * 60000).toISOString(), // 6 hours from now
-        currentLocation: 'En route'
-      }];
-    } else {
-      // Train #4
-      return [
-        {
-          trainId,
-          direction: 'eastbound',
-          lastUpdated: new Date().toISOString(),
-          status: 'On time',
-          nextStation: 'Fort Madison',
-          estimatedArrival: new Date(Date.now() + 55 * 60000).toISOString(), // 55 minutes from now
-          currentLocation: 'En route'
-        },
-        {
-          trainId,
-          direction: 'eastbound',
-          lastUpdated: new Date().toISOString(),
-          status: 'On time',
-          nextStation: 'Las Vegas',
-          estimatedArrival: new Date(Date.now() + 2 * 60 * 60000).toISOString(), // 2 hours from now
-          currentLocation: 'En route'
-        }
-      ];
-    }
+    return [];
   }
 }
 
@@ -237,15 +206,7 @@ export async function scrapeTrainStatus(url: string, trainId: string): Promise<T
  * Helper function to create a train status object
  */
 function createTrainStatus(
-  trainId: string,
-  direction: 'westbound' | 'eastbound',
-  lastUpdated: string,
-  stationName: string,
-  arrivalTime: string,
-  arrivalDate: Date,
-  delayText: string,
-  currentLocation: string
-): TrainStatus {
+trainId: string, direction: 'eastbound' | 'westbound', lastUpdated: string, stationName: string, arrivalTime: string, arrivalDate: Date, p0: string, p1: string, instanceId: number): TrainStatus {
   const timeParts = arrivalTime.split(':');
   const hours = parseInt(timeParts[0], 10);
   const minutes = parseInt(timeParts[1], 10);
@@ -255,16 +216,47 @@ function createTrainStatus(
   // We'll use MDT for simplicity since the site is likely using the current timezone
   const mtOffset = -6; // MDT offset from UTC in hours
   
-  // Create a new date in UTC
-  const estimatedArrival = new Date(Date.UTC(
-    arrivalDate.getFullYear(),
-    arrivalDate.getMonth(),
-    arrivalDate.getDate(),
-    hours - mtOffset, // Convert MT hours to UTC
-    minutes,
-    0,
-    0
-  ));
+  let estimatedArrival: Date;
+  
+  try {
+    // Create a date object representing the arrival time in Mountain Time
+    const mtDate = new Date(
+      arrivalDate.getFullYear(),
+      arrivalDate.getMonth(),
+      arrivalDate.getDate(),
+      hours,
+      minutes,
+      0,
+      0
+    );
+    
+    // Get the user's local timezone offset in minutes
+    const localOffset = new Date().getTimezoneOffset()  / 60 * -1;
+    
+    // Calculate the difference between Mountain Time and local time in milliseconds
+    // Mountain Time is UTC-6, so to convert from MT to local:
+    // 1. Convert MT to UTC: Add 6 hours (mtOffset * -1 * 60 * 60 * 1000)
+    // 2. Convert UTC to local: Subtract local offset (localOffset * 60 * 1000)
+    const offsetDiff = localOffset - getStationTimeZoneOffset(stationName) 
+    
+    // Apply the offset difference to get the time in the user's local timezone
+    const localTime = new Date(mtDate.getTime() + offsetDiff);
+    
+    // Create a new UTC date that represents the same moment
+    // Use a direct approach to avoid TypeScript errors
+    estimatedArrival = new Date();
+    estimatedArrival.setTime(mtDate.getTime() + offsetDiff * 60 * 60 * 1000);
+    console.log('estimatedArrival = ', estimatedArrival, stationName, getStationTimeZoneOffset(stationName), offsetDiff * 60 * 60, localOffset, offsetDiff)
+    // Log for debugging
+    console.log(`Original MT time: ${hours}:${minutes}, Date: ${arrivalDate.toDateString()}`);
+    console.log(`Local timezone offset: ${localOffset} minutes`);
+    console.log(`Converted to local time: ${localTime.toLocaleString()}`);
+    console.log(`Stored as UTC: ${estimatedArrival.toISOString()}`);
+  } catch (e) {
+    console.error('Error converting time:', e);
+    // Fallback to current time plus 1 hour if there's an error
+    estimatedArrival = new Date(new Date().getTime() + 60 * 60 * 1000);
+  }
   
   const trainStatus: TrainStatus = {
     trainId,
@@ -272,10 +264,11 @@ function createTrainStatus(
     lastUpdated,
     nextStation: stationName,
     estimatedArrival: estimatedArrival.toISOString(),
-    currentLocation,
-    status: 'On time'
+    status: 'On time',
+    instanceId: instanceId,
+    isNext: false
   };
-  
+  /*
   // Parse delay information
   if (delayText) {
     const delayRegex = /(\d+) hr\. (\d+) min\. late/;
@@ -285,8 +278,9 @@ function createTrainStatus(
       const minutes = parseInt(delayMatch[2], 10);
       trainStatus.delayMinutes = hours * 60 + minutes;
       trainStatus.status = `Delayed ${hours} hr ${minutes} min`;
+      trainStatus.instanceId = instanceId;
     }
-  }
+  }8*/
   
   return trainStatus;
 }
@@ -298,42 +292,47 @@ function createTrainStatus(
  */
 export function mockTrainStatus(trainId: string): TrainStatus[] {
   const now = new Date();
-  const eta = new Date(now.getTime() + 25 * 60000); // 25 minutes from now
+  
+  // Function to create a properly timezone-adjusted date
+  const createAdjustedDate = (hoursToAdd: number): string => {
+    // Create a date in Mountain Time (MDT)
+    const mtOffset = -6; // MDT offset from UTC
+    
+    // Calculate the target time in Mountain Time
+    const mtDate = new Date(now.getTime() + hoursToAdd * 60 * 60 * 1000);
+    
+    // Get the user's local timezone offset in minutes
+    const localOffset = new Date().getTimezoneOffset();
+    
+    // Calculate the difference between Mountain Time and local time in milliseconds
+    const offsetDiff = (mtOffset * -1 * 60 * 60 * 1000) - (localOffset * 60 * 1000);
+    
+    // Apply the offset difference to get the time in the user's local timezone
+    const localTime = new Date(mtDate.getTime() + offsetDiff);
+    
+    // Create a new UTC date that represents the same moment
+    // Use a direct approach to avoid TypeScript errors
+    const adjustedDate = new Date();
+    adjustedDate.setTime(localTime.getTime());
+    
+    // Log for debugging
+    console.log(`Mock data - Hours to add: ${hoursToAdd}, Original MT time: ${mtDate.toLocaleString()}`);
+    console.log(`Mock data - Local timezone offset: ${localOffset} minutes`);
+    console.log(`Mock data - Converted to local time: ${localTime.toLocaleString()}`);
+    console.log(`Mock data - Stored as UTC: ${adjustedDate.toISOString()}`);
+    
+    return adjustedDate.toISOString();
+  };
   
   if (trainId === '3') {
-    return [{
-      trainId,
-      direction: 'westbound',
-      lastUpdated: now.toISOString(),
-      currentLocation: 'En route',
-      nextStation: 'Gallup',
-      estimatedArrival: new Date(now.getTime() + 6 * 60 * 60000).toISOString(), // 6 hours from now
-      status: 'On time',
-      delayMinutes: 0,
-    }];
+    // For Train #3, create two instances to simulate multiple trains
+    return [
+     
+    ];
   } else {
     // Train #4
     return [
-      {
-        trainId,
-        direction: 'eastbound',
-        lastUpdated: now.toISOString(),
-        currentLocation: 'En route to Fort Madison',
-        nextStation: 'Fort Madison',
-        estimatedArrival: new Date(now.getTime() + 55 * 60000).toISOString(), // 55 minutes from now
-        status: 'On time',
-        delayMinutes: 0,
-      },
-      {
-        trainId,
-        direction: 'eastbound',
-        lastUpdated: now.toISOString(),
-        currentLocation: 'En route to Las Vegas',
-        nextStation: 'Las Vegas',
-        estimatedArrival: new Date(now.getTime() + 2 * 60 * 60000).toISOString(), // 2 hours from now
-        status: 'On time',
-        delayMinutes: 0,
-      }
+   
     ];
   }
 }

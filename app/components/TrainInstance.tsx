@@ -28,13 +28,25 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   // Calculate minutes away
   const minutesAway = nextRailcam.minutesAway;
   
+  // Get the current time and the estimated arrival time
+  const now = new Date();
+  const eta = new Date(nextRailcam.estimatedArrival);
+  
+  // Calculate the actual minutes away based on the current time and ETA
+  const actualMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
+  
+  // Log for debugging
+  console.log(`TrainInstance - ${trainStatus.trainId} to ${nextRailcam.station.name}:`);
+  console.log(`ETA: ${eta.toISOString()}, Now: ${now.toISOString()}`);
+  console.log(`Minutes away from API: ${minutesAway}, Calculated: ${actualMinutesAway}`);
+  
   // Format the time until arrival
-  const timeUntilArrival = minutesAway > 60
-    ? `${Math.floor(minutesAway / 60)} hr ${minutesAway % 60} min`
-    : `${minutesAway} min`;
+  const timeUntilArrival = actualMinutesAway > 60
+    ? `${Math.floor(actualMinutesAway / 60)} hr ${actualMinutesAway % 60} min`
+    : `${actualMinutesAway} min`;
   
   // Determine if the train has already passed the station
-  const hasPassed = minutesAway <= 0;
+  const hasPassed = actualMinutesAway <= 0;
   
   // Determine the border color based on selection status
   const borderColor = isSelected
@@ -53,7 +65,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
     >
       <div className="flex justify-between items-start mb-2">
         <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-700 dark:text-gray-300">
-          Train #{trainStatus.trainId} - Instance {instanceId + 1}
+          Train #{trainStatus.trainId} - Train {instanceId}
         </span>
       </div>
       <div className="flex justify-between items-start">

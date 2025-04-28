@@ -6,7 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "mocha --require ts-node/register 'tests/**/*.test.ts'",
+    "test:watch": "mocha --require ts-node/register --watch 'tests/**/*.test.ts'",
+    "test:coverage": "nyc mocha --require ts-node/register 'tests/**/*.test.ts'"
   },
   "dependencies": {
     "axios": "^1.9.0",
@@ -18,14 +21,27 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/react-hooks": "^8.0.1",
     "@types/axios": "^0.9.36",
+    "@types/chai": "^5.2.1",
     "@types/cheerio": "^0.22.35",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sinon": "^17.0.4",
+    "chai": "^5.2.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
+    "jsdom": "^26.1.0",
+    "mocha": "^11.1.0",
+    "nock": "^14.0.4",
+    "nyc": "^17.1.0",
+    "sinon": "^20.0.0",
+    "supertest": "^7.1.0",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

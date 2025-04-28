@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { appConfig } from '../../app/config';
-import { scrapeTrainStatus, mockTrainStatus } from '../../app/utils/scraper';
+import { scrapeTrainStatus } from '../../app/utils/scraper';
 import { saveTrainStatus } from '../../app/utils/storage';
 
 type ScrapeResponse = {
@@ -40,14 +40,11 @@ export default async function handler(
     for (const trainId of trainIds) {
       let trainStatus;
       
-      if (useMockData) {
-        // Use mock data
-        trainStatus = mockTrainStatus(trainId);
-      } else {
+
         // Scrape real data
         const url = appConfig.trainUrls[trainId as '3' | '4'];
         trainStatus = await scrapeTrainStatus(url, trainId);
-      }
+      
       
       // Save the train statuses if we got data
       if (trainStatus && trainStatus.length > 0) {

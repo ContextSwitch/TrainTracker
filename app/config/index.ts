@@ -18,11 +18,11 @@ export const appConfig: AppConfig = {
       youtubeLink: 'https://railstream.net/live-cameras/item/fullerton-guest'
     },
     {
-      name: 'Barstow',
+      name: 'Barstow - Harvey House Railroad Depot',
       youtubeLink: 'https://www.youtube.com/watch?v=_DUQnPjPC_8'
     },
     {
-      name: 'Flagstaff',
+      name: 'Flagstaff - Amtrak Station',
       youtubeLink: 'https://www.youtube.com/watch?v=7xdHH9KMSVk'
     },
     {
@@ -38,7 +38,7 @@ export const appConfig: AppConfig = {
       youtubeLink: 'https://www.youtube.com/watch?v=BgmZJ-NUqiY'
     },
     {
-      name: 'Santa Fe Junction/Kansas City',
+      name: 'Kansas City - Union Station',
       youtubeLink: 'https://www.youtube.com/watch?v=u6UbwlQQ3QU'
     },
     {
