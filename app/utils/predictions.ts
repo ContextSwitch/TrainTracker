@@ -22,13 +22,11 @@ export function getStationTimeZoneOffset(stationName: string): number {
   // Central Time Zone stations (UTC-6 standard, UTC-5 daylight)
   const centralStations = [
     'Garden City', 'Dodge City', 'Hutchinson', 'Newton', 'Topeka',
-    'Lawrence', 'Kansas City - Union Station', 'La Plata', 'Fort Madison', 'Galesburg'
+    'Lawrence', 'Kansas City - Union Station', 'La Plata', 'Fort Madison', 'Galesburg','Princeton', 'Mendota', 'Naperville', 'Chicago'
   ];
   
   // Eastern Time Zone stations (UTC-5 standard, UTC-4 daylight)
-  const easternStations = [
-    'Princeton', 'Mendota', 'Naperville', 'Chicago'
-  ];
+  const easternStations = [""];
   
   // Determine the time zone based on the station name
   if (pacificStations.some(station => stationName.includes(station))) {

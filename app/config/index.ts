@@ -22,6 +22,14 @@ export const appConfig: AppConfig = {
       youtubeLink: 'https://www.youtube.com/watch?v=_DUQnPjPC_8'
     },
     {
+      name: 'Kingman',
+      youtubeLink: 'https://www.youtube.com/watch?v=h8-J3JGU7g4'
+    },
+    {
+      name: 'Needles',
+      youtubeLink: 'https://www.youtube.com/watch?v=sg3kp4pn9fU'
+    },
+    {
       name: 'Flagstaff - Amtrak Station',
       youtubeLink: 'https://www.youtube.com/watch?v=7xdHH9KMSVk'
     },
@@ -38,6 +46,10 @@ export const appConfig: AppConfig = {
       youtubeLink: 'https://www.youtube.com/watch?v=BgmZJ-NUqiY'
     },
     {
+      name: 'Lawrence',
+      youtubeLink: 'https://www.youtube.com/watch?v=HoWfxLcHDak'
+    },
+    {
       name: 'Kansas City - Union Station',
       youtubeLink: 'https://www.youtube.com/watch?v=u6UbwlQQ3QU'
     },
@@ -52,6 +64,10 @@ export const appConfig: AppConfig = {
     {
       name: 'Galesburg',
       youtubeLink: 'https://www.youtube.com/watch?v=On1MRt0NqFs'
+    },
+    {
+      name: 'Mendota',
+      youtubeLink: 'https://www.youtube.com/watch?v=UE63jwH4XSs'
     }
   ],
   

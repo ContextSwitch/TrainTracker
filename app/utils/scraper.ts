@@ -5,7 +5,7 @@ import { getStationByName } from '../config';
 import { stat } from 'fs';
 import { getStationTimeZoneOffset } from './predictions';
 
-const railcamStations = ['Galesburg', 'Fort Madison', 'La Plata', 'Kansas City - Union Station', 'Las Vegas', 'Gallup','Winslow','Flagstaff - Amtrak Station', 'Barstow - Harvey House Railroad Depot', 'Fullerton'];
+const railcamStations = ['Mendota', 'Galesburg', 'Fort Madison', 'La Plata', 'Kansas City - Union Station', 'Las Vegas', 'Gallup','Winslow','Flagstaff - Amtrak Station', 'Kingman', 'Needles', 'Barstow - Harvey House Railroad Depot', 'Fullerton'];
 
 
 /**

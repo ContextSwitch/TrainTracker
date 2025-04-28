@@ -6,6 +6,7 @@ import YouTubePlayer from './components/YouTubePlayer';
 import TrainStatusComponent from './components/TrainStatus';
 import NotificationManager from './components/NotificationManager';
 import ThemeToggle from './components/ThemeToggle';
+import RouteStations from './components/RouteStations';
 
 export default function Home() {
   // State to store the current status
@@ -180,7 +181,7 @@ export default function Home() {
         <ThemeToggle />
       </header>
       
-      <main className="max-w-6xl mx-auto">
+      <main className="max-w-7xl mx-auto">
         {/* Error message */}
         {error && (
           <div className="p-4 mb-6 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400">
@@ -201,66 +202,91 @@ export default function Home() {
           </div>
         )}
         
-        {/* Video player */}
-        {showVideoFor && showVideoFor.youtubeLink ? (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 dark:text-white">
-              Live Railcam: {showVideoFor.station?.name}
-            </h2>
-            <div className="bg-black rounded-lg overflow-hidden">
-              <YouTubePlayer videoUrl={showVideoFor.youtubeLink} />
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left sidebar - Chicago → Los Angeles route (Train #3) */}
+          <div className="lg:w-64">
+            <RouteStations 
+              onSelectStation={handleSelectStation} 
+              selectedStation={showVideoFor?.station?.name}
+              trainId="3"
+              direction="westbound"
+            />
+          </div>
+          
+          {/* Main content */}
+          <div className="flex-1">
+            {/* Video player */}
+            {showVideoFor && showVideoFor.youtubeLink ? (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-4 dark:text-white">
+                  Live Railcam: {showVideoFor.station?.name}
+                </h2>
+                <div className="bg-black rounded-lg overflow-hidden">
+                  <YouTubePlayer videoUrl={showVideoFor.youtubeLink} />
+                </div>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  Train #{showVideoFor === currentStatus.train3 ? '3' : '4'} is approaching this location
+                </p>
+              </div>
+            ) : (
+              <div className="mb-8 p-8 border rounded-lg bg-gray-50 dark:bg-gray-950 dark:border-gray-800 text-center">
+                <h2 className="text-xl font-semibold mb-2 dark:text-white">No Trains Approaching Railcams</h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  When a train is approaching a railcam location, the live video will appear here.
+                </p>
+              </div>
+            )}
+            
+            {/* Train status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <TrainStatusComponent
+                trainId="3"
+                trainStatus={train3Status}
+                direction="Los Angeles"
+                approaching={currentStatus.train3}
+                allTrainStatuses={train3Statuses}
+                onSelectStation={handleSelectStation}
+              />
+              <TrainStatusComponent
+                trainId="4"
+                trainStatus={train4Statuses.length > 0 ? train4Statuses[0] : null}
+                direction="Chicago"
+                approaching={currentStatus.train4}
+                allTrainStatuses={train4Statuses}
+                onSelectStation={handleSelectStation}
+              />
             </div>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              Train #{showVideoFor === currentStatus.train3 ? '3' : '4'} is approaching this location
-            </p>
+            
+            {/* Notification manager */}
+            <NotificationManager
+              train3={currentStatus.train3}
+              train4={currentStatus.train4}
+            />
+            
+            {/* Update button */}
+            <div className="mt-8 text-center">
+              <button
+                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700"
+                onClick={triggerUpdate}
+                disabled={loading}
+              >
+                {loading ? 'Updating...' : 'Update Now'}
+              </button>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                Last updated: {currentStatus.lastUpdated ? new Date(currentStatus.lastUpdated).toLocaleString() : 'Never'}
+              </p>
+            </div>
           </div>
-        ) : (
-          <div className="mb-8 p-8 border rounded-lg bg-gray-50 dark:bg-gray-950 dark:border-gray-800 text-center">
-            <h2 className="text-xl font-semibold mb-2 dark:text-white">No Trains Approaching Railcams</h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              When a train is approaching a railcam location, the live video will appear here.
-            </p>
+          
+          {/* Right sidebar - Los Angeles → Chicago route (Train #4) */}
+          <div className="lg:w-64">
+            <RouteStations 
+              onSelectStation={handleSelectStation} 
+              selectedStation={showVideoFor?.station?.name}
+              trainId="4"
+              direction="eastbound"
+            />
           </div>
-        )}
-        
-        {/* Train status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <TrainStatusComponent
-            trainId="3"
-            trainStatus={train3Status}
-            direction="Los Angeles"
-            approaching={currentStatus.train3}
-            allTrainStatuses={train3Statuses}
-            onSelectStation={handleSelectStation}
-          />
-          <TrainStatusComponent
-            trainId="4"
-            trainStatus={train4Statuses.length > 0 ? train4Statuses[0] : null}
-            direction="Chicago"
-            approaching={currentStatus.train4}
-            allTrainStatuses={train4Statuses}
-            onSelectStation={handleSelectStation}
-          />
-        </div>
-        
-        {/* Notification manager */}
-        <NotificationManager
-          train3={currentStatus.train3}
-          train4={currentStatus.train4}
-        />
-        
-        {/* Update button */}
-        <div className="mt-8 text-center">
-          <button
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700"
-            onClick={triggerUpdate}
-            disabled={loading}
-          >
-            {loading ? 'Updating...' : 'Update Now'}
-          </button>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Last updated: {currentStatus.lastUpdated ? new Date(currentStatus.lastUpdated).toLocaleString() : 'Never'}
-          </p>
         </div>
       </main>
       
