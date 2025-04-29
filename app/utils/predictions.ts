@@ -93,50 +93,16 @@ export function checkTrainApproaching(trainStatus: TrainStatus): TrainApproachin
 }
 
 /**
- * Finds the next railcam station along the route
- * @param trainStatus The current train status or an array of train statuses
+ * Process a single train status to find the next railcam station
+ * @param trainStatus The current train status
  * @returns The next railcam station, estimated arrival time, and minutes away
  */
-export function findNextRailcamStation(trainStatus: TrainStatus | TrainStatus[]): {
+function processSingleTrainStatus(trainStatus: TrainStatus): {
   station: RailcamStation;
   estimatedArrival: string;
   minutesAway: number;
-  trainId?: string;
-  trainIndex?: number;
 } | null {
-  // If we have an array of train statuses, find the one that will arrive at a railcam location first
-  if (Array.isArray(trainStatus)) {
-    // Filter out trains without next station or estimated arrival
-    const validTrains = trainStatus.filter(train => 
-      train.nextStation && train.estimatedArrival
-    );
-    
-    if (validTrains.length === 0) {
-      return null;
-    }
-    
-    // Check each train for the next railcam station
-    const railcamStations = validTrains.map((train, index) => {
-      const result = findNextRailcamStation(train);
-      if (result) {
-        return {
-          ...result,
-          trainId: train.trainId,
-          trainIndex: index
-        };
-      }
-      return null;
-    }).filter(Boolean);
-    
-    if (railcamStations.length === 0) {
-      return null;
-    }
-    
-    // Sort by minutes away and return the closest one
-    return railcamStations.sort((a, b) => a!.minutesAway - b!.minutesAway)[0];
-  }
-  
-  // Single train status processing
+  // If we have next station and estimated arrival information
   if (trainStatus.nextStation && trainStatus.estimatedArrival) {
     const station = getStationByName(trainStatus.nextStation);
     if (station) {
@@ -144,11 +110,10 @@ export function findNextRailcamStation(trainStatus: TrainStatus | TrainStatus[])
       const now = new Date();
       const eta = new Date(trainStatus.estimatedArrival);
       
-      // Log for debugging
       console.log(`findNextRailcamStation for ${trainStatus.trainId} to ${trainStatus.nextStation}:`);
       console.log(`ETA from data: ${eta.toISOString()}, Now: ${now.toISOString()}`);
       
-      const minutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
+      let minutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
       console.log(`Minutes away: ${minutesAway}`);
       
       return {
@@ -237,6 +202,58 @@ export function findNextRailcamStation(trainStatus: TrainStatus | TrainStatus[])
 }
 
 /**
+ * Finds the next railcam station along the route
+ * @param trainStatus The current train status or an array of train statuses
+ * @returns The next railcam station, estimated arrival time, and minutes away
+ */
+export function findNextRailcamStation(trainStatus: TrainStatus | TrainStatus[]): {
+  station: RailcamStation;
+  estimatedArrival: string;
+  minutesAway: number;
+  trainId?: string;
+  trainIndex?: number;
+} | null {
+  // If we have an array of train statuses, find the one that will arrive at a railcam location first
+  if (Array.isArray(trainStatus)) {
+    // Filter out trains without next station or estimated arrival
+    const validTrains = trainStatus.filter(train => 
+      train.nextStation && train.estimatedArrival
+    );
+    
+    if (validTrains.length === 0) {
+      return null;
+    }
+    
+    // Process each train status individually without recursion
+    const railcamStations = [];
+    
+    for (let i = 0; i < validTrains.length; i++) {
+      const train = validTrains[i];
+      const result = processSingleTrainStatus(train);
+      
+      if (result) {
+        railcamStations.push({
+          ...result,
+          trainId: train.trainId,
+          trainIndex: i
+        });
+      }
+    }
+    
+    if (railcamStations.length === 0) {
+      return null;
+    }
+    
+    // Sort by minutes away and return the closest one
+    return railcamStations.sort((a, b) => a.minutesAway - b.minutesAway)[0];
+  }
+  
+  // For a single train status, use the helper function
+  const result = processSingleTrainStatus(trainStatus);
+  return result;
+}
+
+/**
  * Generates a human-readable status message
  * @param trainStatus The current train status
  * @param approaching Information about approaching a railcam
@@ -260,22 +277,23 @@ export function generateStatusMessage(
     // Log for debugging
     console.log(`----Train #${trainStatus.trainId} to ${approaching.station.name}:`, trainStatus,approaching);
     console.log(`ETA: ${eta ? eta.toISOString() : 'unknown'}, Now: ${now.toISOString()}`);
-    console.log(`Minutes away from API: ${approaching.minutesAway}, Calculated: ${actualMinutesAway}`);
+    console.log(`Minutes away from API (predict): ${approaching.minutesAway}, Calculated: ${actualMinutesAway}`);
     
     // Include instance ID if available
     const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
     
     // Include timezone if available
     const timezoneInfo = trainStatus.timezone ? ` ${trainStatus.timezone}` : '';
-    
+    console.log('=====trainStatus = ', trainStatus, approaching)
+
     // Only show "arrived" message if the train has actually arrived (ETA is in the past)
     if (eta && now > eta && actualMinutesAway < -2) {
       // Train has already arrived, but we're still showing the webcam
       const minutesPast = Math.abs(actualMinutesAway);
-      return `Train #${trainStatus.trainId}${instanceInfo} arrived at ${approaching.station.name} approximately ${minutesPast} minutes ago${timezoneInfo}.`;
+      return `The Chief is expected at ${approaching.station.name} approximately ${minutesPast} minutes ago${timezoneInfo}.`;
     } else {
       // Train is still approaching or just arrived
-      return `Train #${trainStatus.trainId}${instanceInfo} is approaching ${approaching.station.name} and will arrive in approximately ${Math.max(0, actualMinutesAway)} minutes${timezoneInfo}.`;
+      return `The Chief is approaching ${approaching.station.name} and will arrive in approximately ${Math.max(0, actualMinutesAway)} minutes${timezoneInfo}.`;
     }
   } else if (trainStatus.currentLocation && trainStatus.nextStation) {
     // Include instance ID if available
@@ -287,11 +305,11 @@ export function generateStatusMessage(
     // Include departed status if available
     const departedInfo = trainStatus.departed ? ' (Departed)' : '';
     
-    return `Train #${trainStatus.trainId}${instanceInfo} is currently at ${trainStatus.currentLocation} and heading to ${trainStatus.nextStation}${departedInfo}${timezoneInfo}.`;
+    return `The Chief is currently at ${trainStatus.currentLocation} and heading to ${trainStatus.nextStation}${departedInfo}${timezoneInfo}.`;
   } else {
     // Include instance ID if available
     const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
     
-    return `Train #${trainStatus.trainId}${instanceInfo} status: ${trainStatus.status}`;
+    return `The Chief is enroute to the following stations`;
   }
 }

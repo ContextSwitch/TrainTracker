@@ -5,7 +5,7 @@ import { getStationByName } from '../config';
 import { stat } from 'fs';
 import { getStationTimeZoneOffset } from './predictions';
 
-const railcamStations = ['Mendota', 'Galesburg', 'Fort Madison', 'La Plata', 'Kansas City - Union Station', 'Las Vegas', 'Gallup','Winslow','Flagstaff - Amtrak Station', 'Kingman', 'Needles', 'Barstow - Harvey House Railroad Depot', 'Fullerton'];
+const railcamStations = ['Mendota', 'Galesburg', 'Fort Madison', 'La Plata', 'Kansas City - Union Station', 'Lawrence', 'Las Vegas', 'Gallup','Winslow','Flagstaff - Amtrak Station', 'Kingman', 'Needles', 'Barstow - Harvey House Railroad Depot', 'Fullerton'];
 
 
 /**
@@ -66,6 +66,9 @@ export async function scrapeTrainStatus(url: string, trainId: string): Promise<T
       if (text.includes('est. arrival')) {
         // Parse the station information
         // Format: "GLP, est. arrival 21:44, 3 hr. 30 min. late, est. departure 21:45, 3 hr. 31 min. late (Gallup)."
+        
+
+
         const match = text.match(/([A-Z]{3}).*est\. arrival (\d+:\d+).*?(\d+ hr\. \d+ min\. late)?.*?\((.*?)\)/);
         if (match && match.length >= 5) {
           const stationCode = match[1];
@@ -167,11 +170,6 @@ export async function scrapeTrainStatus(url: string, trainId: string): Promise<T
       }
     }
 
-
-
-
-    console.log('train statuses = ', trainStatuses)    
-
     let instanceIds = [...new Set(trainStatuses.map(status => status.instanceId))];
     let instanceStatus = [];
     let result = [];
@@ -186,13 +184,8 @@ export async function scrapeTrainStatus(url: string, trainId: string): Promise<T
           return railcamStations.indexOf(a.nextStation) - railcamStations.indexOf(b.nextStation)
         }
       })
-      console.log('sorted trains = ', instance, instanceStatus[instance])
       result.push(instanceStatus[instance][0])
-    }
-
-    console.log("result - ", result)
-    
-
+    }    
 
     return result;
   } catch (error) {
@@ -246,12 +239,7 @@ trainId: string, direction: 'eastbound' | 'westbound', lastUpdated: string, stat
     // Use a direct approach to avoid TypeScript errors
     estimatedArrival = new Date();
     estimatedArrival.setTime(mtDate.getTime() + offsetDiff * 60 * 60 * 1000);
-    console.log('estimatedArrival = ', estimatedArrival, stationName, getStationTimeZoneOffset(stationName), offsetDiff * 60 * 60, localOffset, offsetDiff)
-    // Log for debugging
-    console.log(`Original MT time: ${hours}:${minutes}, Date: ${arrivalDate.toDateString()}`);
-    console.log(`Local timezone offset: ${localOffset} minutes`);
-    console.log(`Converted to local time: ${localTime.toLocaleString()}`);
-    console.log(`Stored as UTC: ${estimatedArrival.toISOString()}`);
+
   } catch (e) {
     console.error('Error converting time:', e);
     // Fallback to current time plus 1 hour if there's an error
@@ -314,12 +302,6 @@ export function mockTrainStatus(trainId: string): TrainStatus[] {
     // Use a direct approach to avoid TypeScript errors
     const adjustedDate = new Date();
     adjustedDate.setTime(localTime.getTime());
-    
-    // Log for debugging
-    console.log(`Mock data - Hours to add: ${hoursToAdd}, Original MT time: ${mtDate.toLocaleString()}`);
-    console.log(`Mock data - Local timezone offset: ${localOffset} minutes`);
-    console.log(`Mock data - Converted to local time: ${localTime.toLocaleString()}`);
-    console.log(`Mock data - Stored as UTC: ${adjustedDate.toISOString()}`);
     
     return adjustedDate.toISOString();
   };

@@ -24,6 +24,8 @@ export default function Home() {
   const [train3Statuses, setTrain3Statuses] = useState<TrainStatus[]>([]);
   const [train4Statuses, setTrain4Statuses] = useState<TrainStatus[]>([]);
   
+
+
   // State to track loading and errors
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +73,7 @@ export default function Home() {
       if (train4Data && train4Data.length > 0) {
         setTrain4Statuses(train4Data);
       }
+
     } catch (err) {
       console.error('Error fetching status:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -156,7 +159,7 @@ export default function Home() {
     // Clean up the interval on unmount
     return () => clearInterval(intervalId);
   }, []);
-  
+
   // Determine which train to show the video for
   // Show the last selected train if it's approaching, otherwise use default priority
   const showVideoFor = lastSelectedTrain === '4' && currentStatus.train4.approaching
@@ -210,6 +213,7 @@ export default function Home() {
               selectedStation={showVideoFor?.station?.name}
               trainId="3"
               direction="westbound"
+              trainStatus={train3Status}
             />
           </div>
           
@@ -285,7 +289,10 @@ export default function Home() {
               selectedStation={showVideoFor?.station?.name}
               trainId="4"
               direction="eastbound"
+              trainStatus={train4Statuses.length > 0 ? train4Statuses[0] : null}
+              allStatuses={train4Statuses}
             />
+            
           </div>
         </div>
       </main>

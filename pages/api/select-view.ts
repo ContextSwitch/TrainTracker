@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
-import { CurrentStatus, RailcamStation } from '../../app/types';
+import { CurrentStatus, RailcamStation, TrainStatus } from '../../app/types';
 import { appConfig, getStationByName, getYoutubeEmbedUrl } from '../../app/config';
 
 /**
@@ -49,13 +49,67 @@ export default function handler(
       };
     }
     
+    // Try to get the train status data to preserve accurate ETA and minutesAway
+    let eta = new Date().toISOString();
+    let minutesAway = 0;
+    
+    try {
+      // Get the train status data
+      const trainStatusPath = path.join(process.cwd(), 'data', 'train_status.json');
+      
+      if (fs.existsSync(trainStatusPath)) {
+        const data = fs.readFileSync(trainStatusPath, 'utf8');
+        const trainStatusData = JSON.parse(data);
+        
+        // Get the train statuses for the selected train
+        const relevantTrainStatuses = trainStatusData[trainId] || [];
+        
+        console.log(`Found ${relevantTrainStatuses.length} train statuses for train ${trainId}`);
+        console.log('Looking for station:', stationName);
+        
+        // Log all train statuses for debugging
+        relevantTrainStatuses.forEach((status: TrainStatus, index: number) => {
+          console.log(`Train status ${index}:`, {
+            trainId: status.trainId,
+            nextStation: status.nextStation,
+            estimatedArrival: status.estimatedArrival
+          });
+        });
+        
+        // Find the train status for the selected station
+        const selectedTrainStatus = relevantTrainStatuses.find((status: TrainStatus) => 
+          status?.nextStation && 
+          (status.nextStation.toLowerCase() === stationName.toLowerCase() ||
+           stationName.toLowerCase().includes(status.nextStation.toLowerCase()) ||
+           status.nextStation.toLowerCase().includes(stationName.toLowerCase()))
+        );
+        
+        console.log('Selected train status:', selectedTrainStatus);
+        
+        // Calculate accurate ETA and minutesAway
+        if (selectedTrainStatus && selectedTrainStatus.estimatedArrival) {
+          eta = selectedTrainStatus.estimatedArrival;
+          const now = new Date();
+          const etaDate = new Date(eta);
+          minutesAway = Math.floor((etaDate.getTime() - now.getTime()) / (1000 * 60));
+          console.log('Using ETA from train status:', eta);
+          console.log('Minutes away:', minutesAway);
+        } else {
+          console.log('No matching train status found, using current time as ETA');
+        }
+      }
+    } catch (err) {
+      console.error('Error reading train status data:', err);
+      // Continue with default values if there's an error
+    }
+    
     // Update the current status based on the train ID
     if (trainId === '3') {
       currentStatus.train3 = {
         approaching: true,
         station,
-        eta: new Date().toISOString(), // This would normally be the actual ETA
-        minutesAway: 0, // This would normally be calculated based on the ETA
+        eta: eta,
+        minutesAway: minutesAway,
         youtubeLink: getYoutubeEmbedUrl(station.youtubeLink)
       };
       
@@ -67,8 +121,8 @@ export default function handler(
       currentStatus.train4 = {
         approaching: true,
         station,
-        eta: new Date().toISOString(), // This would normally be the actual ETA
-        minutesAway: 0, // This would normally be calculated based on the ETA
+        eta: eta,
+        minutesAway: minutesAway,
         youtubeLink: getYoutubeEmbedUrl(station.youtubeLink)
       };
       

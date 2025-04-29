@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TrainStatus as TrainStatusType, TrainApproaching } from '../types';
 import { generateStatusMessage, findNextRailcamStation } from '../utils/predictions';
 import TrainInstance from './TrainInstance';
@@ -59,6 +59,21 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
   const selectedStationName = approaching.approaching && approaching.station 
     ? approaching.station.name 
     : null;
+    
+  // Pre-calculate next railcam stations for all train statuses to avoid multiple calls
+  const nextRailcamStations = useMemo(() => {
+    if (!hasMultipleInstances) {
+      return trainStatus ? { [0]: findNextRailcamStation(trainStatus) } : {};
+    }
+    
+    const result: Record<number, ReturnType<typeof findNextRailcamStation>> = {};
+    allTrainStatuses
+      .filter(status => !status.departed)
+      .forEach((status, index) => {
+        result[index] = findNextRailcamStation(status);
+      });
+    return result;
+  }, [hasMultipleInstances, trainStatus, allTrainStatuses]);
 
   return (
     <div className={`p-4 border rounded-lg ${statusColor}`}>
@@ -86,7 +101,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
             {realTimeMinutesAway >= 0 ? (
               `Arriving at ${approaching.station.name} in ${realTimeMinutesAway} minutes`
             ) : (
-              `Arrived at ${approaching.station.name} ${Math.abs(realTimeMinutesAway)} minutes ago`
+              `Expected ${approaching.station.name} ${Math.abs(realTimeMinutesAway)} minutes ago`
             )}
           </p>
         )}
@@ -115,11 +130,15 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
                     estimatedArrival: approaching.eta || status.estimatedArrival
                   } : status;
                   
+                  // Get the pre-calculated next railcam station
+                  const nextRailcam = nextRailcamStations[index];
+                  const nextStationName = nextRailcam?.station.name;
+                  
                   return (
                     <TrainInstance
                       key={`${status.trainId}-${index}-${status.nextStation || 'unknown'}`}
                       trainStatus={updatedStatus}
-                      isSelected={selectedStationName === findNextRailcamStation(status)?.station.name}
+                      isSelected={selectedStationName === nextStationName}
                       onSelectStation={onSelectStation}
                       instanceId={index}
                     />

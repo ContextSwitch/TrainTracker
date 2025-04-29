@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { RailcamStation } from '../types';
+import { RailcamStation, TrainStatus } from '../types';
 import { getStationByName } from '../config';
 
 interface RouteStationsProps {
@@ -9,13 +9,17 @@ interface RouteStationsProps {
   selectedStation?: string;
   trainId?: string;
   direction?: 'westbound' | 'eastbound';
+  trainStatus?: TrainStatus | null;
+  allStatuses?: any
 }
 
 const RouteStations: React.FC<RouteStationsProps> = ({
   onSelectStation,
   selectedStation,
-  trainId = '3',
-  direction = 'westbound'
+  trainId,
+  direction = 'westbound',
+  trainStatus,
+  allStatuses
 }) => {
   // Define the Southwest Chief route with all stations
   const westboundRoute = [
@@ -43,28 +47,58 @@ const RouteStations: React.FC<RouteStationsProps> = ({
             const hasRailcam = !!station;
             const isSelected = selectedStation === stationName;
             
+            console.log(' IS NEXT STOP = ',allStatuses, trainId, trainStatus, stationName)
+
+
+            // Check if this station is the next stop for the train
+            const isNextStop = trainStatus && 
+              trainStatus.nextStation && 
+              (trainStatus.nextStation.toLowerCase() === stationName.toLowerCase() || 
+               stationName.toLowerCase().includes(trainStatus.nextStation.toLowerCase()) ||
+               trainStatus.nextStation.toLowerCase().includes(stationName.toLowerCase()));
+            
             return (
               <li 
                 key={stationName}
                 className={`
-                  py-1 px-2 rounded-md flex items-center
+                  py-1 px-2 rounded-md
                   ${hasRailcam ? 'cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30' : ''}
                   ${isSelected ? 'bg-blue-100 dark:bg-blue-900/50' : ''}
+                  ${isNextStop ? 'border-l-4 border-yellow-400 dark:border-yellow-600 pl-1' : ''}
                 `}
                 onClick={() => hasRailcam && onSelectStation(trainId, stationName)}
               >
-                <div className="flex-grow">
-                  <span className={`
-                    ${hasRailcam ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300'}
-                  `}>
-                    {stationName}
-                  </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    {isNextStop && (
+                      <span className="mr-2 text-yellow-600 dark:text-yellow-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                        </svg>
+                        Next Stop
+                      </span>
+                    )}
+                    <span className={`
+                      ${hasRailcam ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300'}
+                      ${isNextStop ? 'font-bold' : ''}
+                    `}>
+                      {stationName}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    {isNextStop && (
+                      <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-xs px-1.5 py-0.5 rounded">
+                        Next
+                      </div>
+                    )}
+                    {hasRailcam && (
+                      <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs px-1.5 py-0.5 rounded">
+                        Railcam
+                      </div>
+                    )}
+                  </div>
                 </div>
-                {hasRailcam && (
-                  <span className="ml-2 text-xs px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded">
-                    Railcam
-                  </span>
-                )}
               </li>
             );
           })}

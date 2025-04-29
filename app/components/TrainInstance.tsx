@@ -1,6 +1,5 @@
 import React from 'react';
 import { TrainStatus as TrainStatusType, RailcamStation } from '../types';
-import { findNextRailcamStation } from '../utils/predictions';
 
 interface TrainInstanceProps {
   trainStatus: TrainStatusType;
@@ -18,28 +17,22 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   onSelectStation,
   instanceId
 }) => {
-  // Find the next railcam station for this train
-  const nextRailcam = findNextRailcamStation(trainStatus);
-  
-  if (!nextRailcam) {
+  // Check if we have next station information
+  if (!trainStatus.nextStation || !trainStatus.estimatedArrival) {
     return null;
   }
   
-  // Calculate minutes away
-  const minutesAway = nextRailcam.minutesAway;
-  
   // Get the current time and the estimated arrival time
   const now = new Date();
-  const eta = new Date(nextRailcam.estimatedArrival);
+  const eta = new Date(trainStatus.estimatedArrival);
   
   // Calculate the actual minutes away based on the current time and ETA
-  const actualMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
+  let actualMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
   
-  // Log for debugging
-  console.log(`TrainInstance - ${trainStatus.trainId} to ${nextRailcam.station.name}:`);
-  console.log(`ETA: ${eta.toISOString()}, Now: ${now.toISOString()}`);
-  console.log(`Minutes away from API: ${minutesAway}, Calculated: ${actualMinutesAway}`);
-  
+  if(actualMinutesAway < -60){
+    actualMinutesAway += 24*60;
+  }
+
   // Format the time until arrival
   const timeUntilArrival = actualMinutesAway > 60
     ? `${Math.floor(actualMinutesAway / 60)} hr ${actualMinutesAway % 60} min`
@@ -61,7 +54,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   return (
     <div 
       className={`p-3 mb-3 rounded-md border ${borderColor} ${bgColor} cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors`}
-      onClick={() => onSelectStation(trainStatus.trainId, nextRailcam.station.name)}
+      onClick={() => onSelectStation(trainStatus.trainId, trainStatus.nextStation || '')}
     >
       <div className="flex justify-between items-start mb-2">
         <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-700 dark:text-gray-300">
@@ -71,11 +64,11 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
       <div className="flex justify-between items-start">
         <div>
           <p className="font-medium text-gray-800 dark:text-gray-200">
-            {nextRailcam.station.name}
+            {trainStatus.nextStation}
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {hasPassed 
-              ? `Arrived ${Math.abs(minutesAway)} min ago` 
+              ? `Expected ${Math.abs(actualMinutesAway)} min ago` 
               : `Arriving in ${timeUntilArrival}`
             }
           </p>
@@ -85,7 +78,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
             <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
           )}
           <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">
-            {new Date(nextRailcam.estimatedArrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {new Date(trainStatus.estimatedArrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
       </div>
