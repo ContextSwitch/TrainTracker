@@ -20,6 +20,8 @@ export async function scrapeTrainStatus(url: string, trainId: string): Promise<T
     const response = await axios.get(url);
     const html = response.data as string;
     
+    console.log('axios response')
+
     // Load the HTML into cheerio
     const $ = cheerio.load(html);
     
@@ -85,7 +87,6 @@ export async function scrapeTrainStatus(url: string, trainId: string): Promise<T
             
           }
           // Parse the estimated arrival time
-          // railrat.net uses Mountain Time (MT) for all train times
           const today = new Date();
           
           // Look for the actual date in the text

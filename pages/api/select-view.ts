@@ -64,18 +64,6 @@ export default function handler(
         // Get the train statuses for the selected train
         const relevantTrainStatuses = trainStatusData[trainId] || [];
         
-        console.log(`Found ${relevantTrainStatuses.length} train statuses for train ${trainId}`);
-        console.log('Looking for station:', stationName);
-        
-        // Log all train statuses for debugging
-        relevantTrainStatuses.forEach((status: TrainStatus, index: number) => {
-          console.log(`Train status ${index}:`, {
-            trainId: status.trainId,
-            nextStation: status.nextStation,
-            estimatedArrival: status.estimatedArrival
-          });
-        });
-        
         // Find the train status for the selected station
         const selectedTrainStatus = relevantTrainStatuses.find((status: TrainStatus) => 
           status?.nextStation && 
@@ -84,16 +72,12 @@ export default function handler(
            status.nextStation.toLowerCase().includes(stationName.toLowerCase()))
         );
         
-        console.log('Selected train status:', selectedTrainStatus);
-        
         // Calculate accurate ETA and minutesAway
         if (selectedTrainStatus && selectedTrainStatus.estimatedArrival) {
           eta = selectedTrainStatus.estimatedArrival;
           const now = new Date();
           const etaDate = new Date(eta);
           minutesAway = Math.floor((etaDate.getTime() - now.getTime()) / (1000 * 60));
-          console.log('Using ETA from train status:', eta);
-          console.log('Minutes away:', minutesAway);
         } else {
           console.log('No matching train status found, using current time as ETA');
         }

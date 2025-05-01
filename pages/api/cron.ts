@@ -5,16 +5,14 @@ import { appConfig } from '../../app/config';
 import { scrapeTrainStatus } from '../../app/utils/scraper';
 import { TrainStatus, CurrentStatus, TrainApproaching } from '../../app/types';
 import { checkTrainApproaching } from '../../app/utils/predictions';
-import TrainInstance from '@/app/components/TrainInstance';
-import { transcode } from 'buffer';
-import { transformSync } from 'next/dist/build/swc/generated-native';
-import { all } from 'axios';
+
 
 type CronResponse = {
   success: boolean;
   message: string;
   lastRun?: string;
 };
+console.log('in cron super')
 
 // Track the last time the cron job was run
 let lastRun: Date | null = null;
@@ -28,6 +26,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<CronResponse>
 ) {
+  console.log('in cron')
   // Only allow GET requests
   if (req.method !== 'GET') {
     res.status(405).end();
@@ -38,6 +37,7 @@ export default async function handler(
   // This prevents excessive scraping if the cron job is called too frequently
   const now = new Date();
   if (lastRun && (now.getTime() - lastRun.getTime()) < 0 * 60 * 1000) {
+    console.log('skipping')
     return res.status(200).json({
       success: true,
       message: 'Skipped update - last update was less than 30 minutes ago',
@@ -68,7 +68,6 @@ export default async function handler(
     }
     
     // Save the train status data
-    console.log("scrapeTrainStatus = ", train3Statuses, train4Statuses)
     saveTrains(train3Statuses);
     saveTrains(train4Statuses);
     

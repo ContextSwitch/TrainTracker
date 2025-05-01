@@ -69,12 +69,7 @@ export function checkTrainApproaching(trainStatus: TrainStatus): TrainApproachin
   const now = new Date();
   const eta = new Date(trainStatus.estimatedArrival);
   
-  // Log for debugging
-  console.log(`checkTrainApproaching for ${trainStatus.trainId} to ${trainStatus.nextStation}:`);
-  console.log(`ETA from data: ${eta.toISOString()}, Now: ${now.toISOString()}`);
-  
   const minutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
-  console.log(`Minutes away: ${minutesAway}`);
   
   // Check if the train is within the approach window or post-arrival window
   // Show the webcam if the train is expected to arrive within X minutes
@@ -110,11 +105,7 @@ function processSingleTrainStatus(trainStatus: TrainStatus): {
       const now = new Date();
       const eta = new Date(trainStatus.estimatedArrival);
       
-      console.log(`findNextRailcamStation for ${trainStatus.trainId} to ${trainStatus.nextStation}:`);
-      console.log(`ETA from data: ${eta.toISOString()}, Now: ${now.toISOString()}`);
-      
       let minutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
-      console.log(`Minutes away: ${minutesAway}`);
       
       return {
         station,
@@ -273,18 +264,12 @@ export function generateStatusMessage(
     if (eta) {
       actualMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
     }
-    
-    // Log for debugging
-    console.log(`----Train #${trainStatus.trainId} to ${approaching.station.name}:`, trainStatus,approaching);
-    console.log(`ETA: ${eta ? eta.toISOString() : 'unknown'}, Now: ${now.toISOString()}`);
-    console.log(`Minutes away from API (predict): ${approaching.minutesAway}, Calculated: ${actualMinutesAway}`);
-    
+
     // Include instance ID if available
     const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
     
     // Include timezone if available
     const timezoneInfo = trainStatus.timezone ? ` ${trainStatus.timezone}` : '';
-    console.log('=====trainStatus = ', trainStatus, approaching)
 
     // Only show "arrived" message if the train has actually arrived (ETA is in the past)
     if (eta && now > eta && actualMinutesAway < -2) {

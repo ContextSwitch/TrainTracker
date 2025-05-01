@@ -10,7 +10,7 @@ interface RouteStationsProps {
   trainId?: string;
   direction?: 'westbound' | 'eastbound';
   trainStatus?: TrainStatus | null;
-  allStatuses?: any
+  allStatuses?: TrainStatus[]
 }
 
 const RouteStations: React.FC<RouteStationsProps> = ({
@@ -21,6 +21,11 @@ const RouteStations: React.FC<RouteStationsProps> = ({
   trainStatus,
   allStatuses
 }) => {
+  
+  // Ensure trainId is a string
+  const actualTrainId = typeof trainId === 'string' ? trainId : 
+                       (direction === 'westbound' ? '3' : '4');
+  
   // Define the Southwest Chief route with all stations
   const westboundRoute = [
     'Chicago', 'Naperville', 'Mendota', 'Princeton', 'Galesburg', 'Fort Madison', 'La Plata', 
@@ -47,15 +52,19 @@ const RouteStations: React.FC<RouteStationsProps> = ({
             const hasRailcam = !!station;
             const isSelected = selectedStation === stationName;
             
-            console.log(' IS NEXT STOP = ',allStatuses, trainId, trainStatus, stationName)
-
-
-            // Check if this station is the next stop for the train
-            const isNextStop = trainStatus && 
+            // Check if this station is the next stop for any train instance
+            const isNextStop = (trainStatus && 
               trainStatus.nextStation && 
               (trainStatus.nextStation.toLowerCase() === stationName.toLowerCase() || 
                stationName.toLowerCase().includes(trainStatus.nextStation.toLowerCase()) ||
-               trainStatus.nextStation.toLowerCase().includes(stationName.toLowerCase()));
+               trainStatus.nextStation.toLowerCase().includes(stationName.toLowerCase()))) ||
+              // Also check all statuses if available
+              (allStatuses && allStatuses.some((status: TrainStatus) => 
+                status && status.nextStation && 
+                (status.nextStation.toLowerCase() === stationName.toLowerCase() || 
+                 stationName.toLowerCase().includes(status.nextStation.toLowerCase()) ||
+                 status.nextStation.toLowerCase().includes(stationName.toLowerCase()))
+              ));
             
             return (
               <li 
@@ -66,7 +75,11 @@ const RouteStations: React.FC<RouteStationsProps> = ({
                   ${isSelected ? 'bg-blue-100 dark:bg-blue-900/50' : ''}
                   ${isNextStop ? 'border-l-4 border-yellow-400 dark:border-yellow-600 pl-1' : ''}
                 `}
-                onClick={() => hasRailcam && onSelectStation(trainId, stationName)}
+                onClick={() => {
+                  if (hasRailcam) {
+                    onSelectStation(actualTrainId, stationName);
+                  }
+                }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -75,7 +88,6 @@ const RouteStations: React.FC<RouteStationsProps> = ({
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                         </svg>
-                        Next Stop
                       </span>
                     )}
                     <span className={`

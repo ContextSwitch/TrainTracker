@@ -29,15 +29,10 @@ export default function Home() {
   // State to track loading and errors
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  console.log(
-    "loading page"
-  )
+
   // Function to fetch the current status
   const fetchCurrentStatus = async () => {
     try {
-      console.log(
-        "in fetchCurrentStatus"
-      )
       setLoading(true);
       setError(null);
       
@@ -86,8 +81,9 @@ export default function Home() {
   const triggerUpdate = async () => {
     try {
       // Call the cron API to trigger an update
+      console.log('calling cron');
       const response = await fetch('/api/cron');
-      
+      console.log('response = ', response)
       if (!response.ok) {
         throw new Error(`Error triggering update: ${response.statusText}`);
       }
@@ -214,6 +210,7 @@ export default function Home() {
               trainId="3"
               direction="westbound"
               trainStatus={train3Status}
+              allStatuses={train3Statuses}
             />
           </div>
           
