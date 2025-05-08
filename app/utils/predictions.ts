@@ -10,7 +10,7 @@ export function getStationTimeZoneOffset(stationName: string): number {
   // Pacific Time Zone stations (UTC-8 standard, UTC-7 daylight)
   const pacificStations = [
     'Los Angeles', 'Fullerton', 'Riverside', 'San Bernardino', 
-    'Victorville', 'Barstow - Harvey House Railroad Depot', 'Needles', 'Flagstaff - Amtrak Station','Winslow'
+    'Victorville', 'Barstow', 'Needles', 'Flagstaff','Winslow'
   ];
   
   // Mountain Time Zone stations (UTC-7 standard, UTC-6 daylight)
@@ -22,7 +22,7 @@ export function getStationTimeZoneOffset(stationName: string): number {
   // Central Time Zone stations (UTC-6 standard, UTC-5 daylight)
   const centralStations = [
     'Garden City', 'Dodge City', 'Hutchinson', 'Newton', 'Topeka',
-    'Lawrence', 'Kansas City - Union Station', 'La Plata', 'Fort Madison', 'Galesburg','Princeton', 'Mendota', 'Naperville', 'Chicago'
+    'Lawrence', 'Kansas City', 'La Plata', 'Fort Madison', 'Galesburg','Princeton', 'Mendota', 'Naperville', 'Chicago'
   ];
   
   // Eastern Time Zone stations (UTC-5 standard, UTC-4 daylight)
@@ -122,9 +122,9 @@ function processSingleTrainStatus(trainStatus: Partial<TrainStatus> & { directio
   // The order is based on the train's direction
   const westboundRoute = [
     'Chicago', 'Naperville', 'Mendota', 'Princeton', 'Galesburg', 'Fort Madison', 'La Plata', 
-    'Kansas City - Union Station', 'Lawrence', 'Topeka', 'Newton', 'Hutchinson', 'Dodge City', 'Garden City', 
+    'Kansas City', 'Lawrence', 'Topeka', 'Newton', 'Hutchinson', 'Dodge City', 'Garden City', 
     'Lamar', 'La Junta', 'Trinidad', 'Raton', 'Las Vegas', 'Lamy', 'Albuquerque', 'Gallup', 
-    'Winslow', 'Flagstaff - Amtrak Station', 'Kingman', 'Needles', 'Barstow - Harvey House Railroad Depot', 'Victorville', 'San Bernardino', 
+    'Winslow', 'Flagstaff', 'Kingman', 'Needles', 'Barstow', 'Victorville', 'San Bernardino', 
     'Riverside', 'Fullerton', 'Los Angeles'
   ];
   
@@ -301,7 +301,19 @@ export function generateStatusMessage(
     // Include departed status if available
     const departedInfo = trainStatus.departed ? ' (Departed)' : '';
     
-    return `The Chief is currently at ${trainStatus.currentLocation} and heading to ${trainStatus.nextStation}${departedInfo}${timezoneInfo}.`;
+    // Include delay information if available
+    let delayInfo = '';
+    if (trainStatus.delayMinutes && trainStatus.delayMinutes > 0) {
+      if (trainStatus.delayMinutes >= 60) {
+        const hours = Math.floor(trainStatus.delayMinutes / 60);
+        const minutes = trainStatus.delayMinutes % 60;
+        delayInfo = ` (${hours} hour${hours !== 1 ? 's' : ''}, ${minutes} minute${minutes !== 1 ? 's' : ''} late)`;
+      } else {
+        delayInfo = ` (${trainStatus.delayMinutes} minute${trainStatus.delayMinutes !== 1 ? 's' : ''} late)`;
+      }
+    }
+    
+    return `The Chief is currently at ${trainStatus.currentLocation} and heading to ${trainStatus.nextStation}${departedInfo}${delayInfo}${timezoneInfo}.`;
   } else {
     // Include instance ID if available
     const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';

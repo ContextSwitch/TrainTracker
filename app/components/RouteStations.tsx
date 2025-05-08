@@ -29,9 +29,9 @@ const RouteStations: React.FC<RouteStationsProps> = ({
   // Define the Southwest Chief route with all stations
   const westboundRoute = [
     'Chicago', 'Naperville', 'Mendota', 'Princeton', 'Galesburg', 'Fort Madison', 'La Plata', 
-    'Kansas City - Union Station', 'Lawrence', 'Topeka', 'Newton', 'Hutchinson', 'Dodge City', 'Garden City', 
+    'Kansas City', 'Lawrence', 'Topeka', 'Newton', 'Hutchinson', 'Dodge City', 'Garden City', 
     'Lamar', 'La Junta', 'Trinidad', 'Raton', 'Las Vegas', 'Lamy', 'Albuquerque', 'Gallup', 
-    'Winslow', 'Flagstaff - Amtrak Station', 'Kingman', 'Needles', 'Barstow - Harvey House Railroad Depot', 'Victorville', 'San Bernardino', 
+    'Winslow', 'Flagstaff', 'Kingman', 'Needles', 'Barstow', 'Victorville', 'San Bernardino', 
     'Riverside', 'Fullerton', 'Los Angeles'
   ];
   

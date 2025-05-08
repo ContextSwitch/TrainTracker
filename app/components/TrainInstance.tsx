@@ -39,9 +39,14 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   }
 
   // Format the time until arrival
-  const timeUntilArrival = actualMinutesAway > 60
-    ? `${Math.floor(actualMinutesAway / 60)} hr ${actualMinutesAway % 60} min`
-    : `${actualMinutesAway} min`;
+  let timeUntilArrival;
+  if (actualMinutesAway > 60) {
+    const hours = Math.floor(actualMinutesAway / 60);
+    const minutes = actualMinutesAway % 60;
+    timeUntilArrival = `${hours} hr${hours !== 1 ? 's' : ''} ${minutes} min`;
+  } else {
+    timeUntilArrival = `${actualMinutesAway} min`;
+  }
   
   // Determine if the train has already passed the station
   const hasPassed = actualMinutesAway <= 0;
@@ -85,7 +90,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {hasPassed 
               ? `Expected ${Math.abs(actualMinutesAway)} min ago` 
-              : `Scheduled to arrive in ${timeUntilArrival}`
+              : `Estimated in ${timeUntilArrival}`
             }
           </p>
         </div>
@@ -107,7 +112,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
       
       {trainStatus.status && trainStatus.status !== 'On time' && (
         <p className="mt-1 text-xs text-red-500 dark:text-red-400">
-          Previous Stop: {trainStatus.status}
+          Delay: {trainStatus.status}
         </p>
       )}
     </div>

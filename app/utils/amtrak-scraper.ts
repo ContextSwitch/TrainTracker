@@ -163,13 +163,19 @@ export async function scrapeTrainFromDixieland(
             // Train has departed this station
             console.log(`Station ${stationCode} has already departed: ${actualText}`);
             
-            // Extract delay information if available
-            const delayMatch = actualText.match(/(\d+)\s+minute(?:s)?\s+late/i);
-            if (delayMatch) {
-              delayText = `${delayMatch[1]} minutes late`;
-            } else if (actualText.includes('On time')) {
-              delayText = 'On time';
-            }
+          // Extract delay information if available
+          const hourMinuteDelayMatch = actualText.match(/(\d+)\s+hour(?:s)?,\s+(\d+)\s+minute(?:s)?\s+late/i);
+          const minuteDelayMatch = actualText.match(/(\d+)\s+minute(?:s)?\s+late/i);
+          
+          if (hourMinuteDelayMatch) {
+            const hours = parseInt(hourMinuteDelayMatch[1], 10);
+            const minutes = parseInt(hourMinuteDelayMatch[2], 10);
+            delayText = `${hours} hour${hours !== 1 ? 's' : ''}, ${minutes} minute${minutes !== 1 ? 's' : ''} late`;
+          } else if (minuteDelayMatch) {
+            delayText = `${minuteDelayMatch[1]} minutes late`;
+          } else if (actualText.includes('On time')) {
+            delayText = 'On time';
+          }
             
             continue;
           }
@@ -231,11 +237,23 @@ export async function scrapeTrainFromDixieland(
     let status = 'On time';
     
     if (delayText) {
-      const delayMatch = delayText.match(/(\d+)\s+minutes?\s+late/i);
-      if (delayMatch) {
-        delayMinutes = parseInt(delayMatch[1], 10);
+      const hourMinuteDelayMatch = delayText.match(/(\d+)\s+hour(?:s)?,\s+(\d+)\s+minute(?:s)?\s+late/i);
+      const minuteDelayMatch = delayText.match(/(\d+)\s+minutes?\s+late/i);
+      
+      if (hourMinuteDelayMatch) {
+        const hours = parseInt(hourMinuteDelayMatch[1], 10);
+        const minutes = parseInt(hourMinuteDelayMatch[2], 10);
+        delayMinutes = hours * 60 + minutes;
+        status = delayText;
+      } else if (minuteDelayMatch) {
+        delayMinutes = parseInt(minuteDelayMatch[1], 10);
         status = `${delayMinutes} minutes late`;
       }
+    }
+    
+    // Adjust the estimated arrival time based on the delay
+    if (delayMinutes > 0) {
+      adjustedArrival.setTime(adjustedArrival.getTime() + delayMinutes * 60 * 1000);
     }
     
     // Create the train status object
@@ -321,6 +339,7 @@ export async function getAllTrainInstances(trainId: string): Promise<TrainStatus
   
   // Check only yesterday and today
   const dates = [
+    new Date(today.getFullYear(), today.getMonth(), today.getDate() - 2), // two days ago
     new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1), // yesterday
     new Date(today.getFullYear(), today.getMonth(), today.getDate())      // today
   ];
