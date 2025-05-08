@@ -157,6 +157,15 @@ export async function scrapeTrainFromDixieland(
           if (actualText.match(/Dp\s+\d+:\d+[AP]/) || actualText.match(/Dp\s+\d+[AP]/)) {
             // Train has departed this station
             console.log(`Station ${stationCode} has already departed: ${actualText}`);
+            
+            // Extract delay information if available
+            const delayMatch = actualText.match(/(\d+)\s+minute(?:s)?\s+late/i);
+            if (delayMatch) {
+              delayText = `${delayMatch[1]} minutes late`;
+            } else if (actualText.includes('On time')) {
+              delayText = 'On time';
+            }
+            
             continue;
           }
           
@@ -210,6 +219,18 @@ export async function scrapeTrainFromDixieland(
     // Determine the train direction
     const direction = trainId === '3' ? 'westbound' : 'eastbound';
     
+    // Parse delay information if available
+    let delayMinutes = 0;
+    let status = 'On time';
+    
+    if (delayText) {
+      const delayMatch = delayText.match(/(\d+)\s+minutes?\s+late/i);
+      if (delayMatch) {
+        delayMinutes = parseInt(delayMatch[1], 10);
+        status = `${delayMinutes} minutes late`;
+      }
+    }
+    
     // Create the train status object
     const trainStatus: TrainStatus = {
       trainId,
@@ -217,7 +238,8 @@ export async function scrapeTrainFromDixieland(
       lastUpdated: new Date().toISOString(),
       nextStation: nextStationName,
       estimatedArrival: adjustedArrival.toISOString(),
-      status: 'On time', // Default status
+      status: status,
+      delayMinutes: delayMinutes > 0 ? delayMinutes : undefined,
       instanceId: getInstanceIdFromDate(date),
       isNext: false,
       departed

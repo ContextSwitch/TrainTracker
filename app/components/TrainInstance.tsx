@@ -69,7 +69,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {hasPassed 
               ? `Expected ${Math.abs(actualMinutesAway)} min ago` 
-              : `Arriving in ${timeUntilArrival}`
+              : `Scheduled to arrive in ${timeUntilArrival}`
             }
           </p>
         </div>
@@ -91,7 +91,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
       
       {trainStatus.status && trainStatus.status !== 'On time' && (
         <p className="mt-1 text-xs text-red-500 dark:text-red-400">
-          Status: {trainStatus.status}
+          Previous Stop: {trainStatus.status}
         </p>
       )}
     </div>
