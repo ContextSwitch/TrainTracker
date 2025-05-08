@@ -299,7 +299,10 @@ export default function Home() {
           Southwest Chief Railcam Tracker &copy; {new Date().getFullYear()}
         </p>
         <p className="mt-1">
-          Data sourced from railrat.net | Railcam videos from YouTube
+          Data sourced from dixielandsoftware.net | Railcam videos from YouTube
+        </p>
+        <p className="mt-1">
+          Times and Locations are for entertainment purposes only and are not gaurenteed to be correct.
         </p>
       </footer>
     </div>

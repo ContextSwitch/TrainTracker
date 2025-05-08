@@ -57,10 +57,15 @@ export default async function handler(
     try {
       console.log('Scraping data for train #3...');
       const scraped3 = await scrapeTrainStatus(appConfig.trainUrls['3'], '3');
-      train3Statuses = scraped3
+      train3Statuses = scraped3;
+      console.log(`Found ${scraped3.length} statuses for train #3`);
+      console.log('Train #3 statuses:', JSON.stringify(scraped3, null, 2));
+      
       console.log('Scraping data for train #4...');
       const scraped4 = await scrapeTrainStatus(appConfig.trainUrls['4'], '4');
-      train4Statuses = scraped4
+      train4Statuses = scraped4;
+      console.log(`Found ${scraped4.length} statuses for train #4`);
+      console.log('Train #4 statuses:', JSON.stringify(scraped4, null, 2));
       
       console.log('Scraping completed successfully');
     } catch (scrapeError) {
@@ -90,28 +95,9 @@ export default async function handler(
 }
 
 function saveTrains(trainStatus: TrainStatus[]){
-  // Get all unique instance IDs
-  let allInstances = trainStatus.map(status => {
-    return status.instanceId;
-  });
-
-  let instances = [...new Set(allInstances)];
-
-  // Process each instance
-  for(let instance of instances){
-    // Initialize with the first status for this instance
-    let nearestStation: TrainStatus | null = null;
-
-    let currentInstance = trainStatus[0].instanceId;
-
-    saveTrainStatus(trainStatus[0]);
-
-    for(let status of trainStatus){
-      if(status.instanceId != currentInstance){
-        saveTrainStatus(status);
-        currentInstance = status.instanceId;
-      }
-    }
+  // Save each train status
+  for(let status of trainStatus){
+    saveTrainStatus(status);
   }
 }
 

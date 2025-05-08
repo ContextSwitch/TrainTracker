@@ -73,8 +73,8 @@ export const appConfig: AppConfig = {
   
   // URLs for the Southwest Chief train status pages
   trainUrls: {
-    '3': 'https://railrat.net/trains/3', // East to West
-    '4': 'https://railrat.net/trains/4'  // West to East
+    '3': 'https://dixielandsoftware.net/cgi-bin/gettrain.pl?seltrain=3', // East to West
+    '4': 'https://dixielandsoftware.net/cgi-bin/gettrain.pl?seltrain=4'  // West to East
   }
 };
 

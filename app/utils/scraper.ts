@@ -1,197 +1,26 @@
-import axios from 'axios';
-import * as cheerio from 'cheerio';
 import { TrainStatus } from '../types';
-import { getStationByName } from '../config';
-import { stat } from 'fs';
+import { scrapeAmtrakTrainStatus } from './amtrak-scraper';
 import { getStationTimeZoneOffset } from './predictions';
 
 const railcamStations = ['Mendota', 'Galesburg', 'Fort Madison', 'La Plata', 'Kansas City - Union Station', 'Lawrence', 'Las Vegas', 'Gallup','Winslow','Flagstaff - Amtrak Station', 'Kingman', 'Needles', 'Barstow - Harvey House Railroad Depot', 'Fullerton'];
 
-
 /**
- * Scrapes train status data from railrat.net
- * @param url The URL of the train status page
+ * Scrapes train status data from dixielandsoftware.net
+ * @param url The URL parameter is kept for backward compatibility but is not used
  * @param trainId The train ID ('3' or '4')
  * @returns Promise with an array of train status data for all instances of this train
  */
 export async function scrapeTrainStatus(url: string, trainId: string): Promise<TrainStatus[]> {
   try {
-    // Fetch the HTML content from railrat.net
-    const response = await axios.get(url);
-    const html = response.data as string;
+    console.log(`Scraping train status for train #${trainId} from dixielandsoftware.net`);
     
-    console.log('axios response')
-
-    // Load the HTML into cheerio
-    const $ = cheerio.load(html);
+    // Use the new Amtrak scraper to get train status data
+    const trainStatuses = await scrapeAmtrakTrainStatus(trainId);
     
-    // Initialize train status array
-    const trainStatuses: TrainStatus[] = [];
-    const lastUpdated = new Date().toISOString();
-    const direction = trainId === '3' ? 'westbound' : 'eastbound';
-    
-    // Extract the latest status update time
-    let updatedLastUpdated = lastUpdated;
-    const statusUpdateText = $('body').text().match(/Latest status for Amtrak Southwest Chief Train \d, updated ([\d:]+) on (\d+\/\d+)/);
-    if (statusUpdateText && statusUpdateText.length >= 3) {
-      const time = statusUpdateText[1] || '';
-      const date = statusUpdateText[2] || '';
-      if (time && date) {
-        try {
-          const dateObj = new Date(`${date}/2025 ${time}`);
-          updatedLastUpdated = dateObj.toISOString();
-        } catch (e) {
-          console.error(`Error parsing date: ${date}/2025 ${time}`, e);
-        }
-      }
-    }
-    
-    // Find all stations with estimated arrivals
-    // We need to find all stations in the list that have "est. arrival" in their text
-    const stationEntries: {
-      stationCode: string;
-      stationName: string;
-      arrivalTime: string;
-      arrivalDate: Date;
-      delayText: string;
-      currentLocation?: string;
-      departed: boolean;
-      instanceId: number;
-    }[] = [];
-    
-    // Extract all station entries with arrival times
-    let firstStation = '';
-    let instanceId = 1;
-
-    $('li').each((i, el) => {
-      const text = $(el).text();
-      if (text.includes('est. arrival')) {
-        // Parse the station information
-        // Format: "GLP, est. arrival 21:44, 3 hr. 30 min. late, est. departure 21:45, 3 hr. 31 min. late (Gallup)."
-        
-
-
-        const match = text.match(/([A-Z]{3}).*est\. arrival (\d+:\d+).*?(\d+ hr\. \d+ min\. late)?.*?\((.*?)\)/);
-        if (match && match.length >= 5) {
-          const stationCode = match[1];
-          const arrivalTime = match[2];
-          const delayText = match[3] || '';
-          const stationName = match[4];
-          const departed = false;
-
-          if(firstStation == ''){
-            firstStation = stationCode;
-          }
-          else if (['CHI', 'LAX'].includes(stationCode)){
-            instanceId++;
-            
-          }
-          // Parse the estimated arrival time
-          const today = new Date();
-          
-          // Look for the actual date in the text
-          // Format: "est. arrival 21:44 on 04/25"
-          let arrivalDate = today;
-          const dateMatch = text.match(/est\. arrival \d+:\d+ on (\d+\/\d+)/);
-          if (dateMatch && dateMatch.length >= 2 && dateMatch[1]) {
-            // Parse the date from the match
-            const dateStr = dateMatch[1];
-            try {
-              arrivalDate = new Date(`${dateStr}/2025`);
-            } catch (e) {
-              console.error(`Error parsing date: ${dateStr}/2025`, e);
-            }
-          }
-
-          stationEntries.push({
-            stationCode,
-            stationName,
-            arrivalTime,
-            arrivalDate,
-            delayText,
-            departed,
-            instanceId
-          });
-        }
-      }
-    });
-    
-    // Extract current location from the Position Updates section
-    let currentLocation = '';
-    const positionUpdateElement = $('div:contains("Position Updates")').next('ul').find('li').first();
-    if (positionUpdateElement.length > 0) {
-      // Format: "18:50 - 122 mi E of Gallup [GLP], 0 mph"
-      currentLocation = positionUpdateElement.text().trim().replace(/^\d+:\d+ - /, '');
-    }
-
-    // If we have station entries, create train status objects for each
-    if (stationEntries.length > 0) {
-      
-      // Define the railcam stations for both directions
-      
-      // Get the current time to check if trains have departed
-      const now = new Date();
-      
-      // Filter station entries to only include railcam stations
-      const railcamEntries = stationEntries.filter(entry => 
-        railcamStations.includes(entry.stationName)
-      );
-      
-      // Create train status objects for each railcam station
-      for (const entry of railcamEntries) {
-        // Create the train status object
-        const trainStatus = createTrainStatus(
-          trainId,
-          direction,
-          lastUpdated,
-          entry.stationName,
-          entry.arrivalTime,
-          entry.arrivalDate,
-          entry.delayText || '',
-          `En route to ${entry.stationName}`,
-          entry.instanceId
-        );
-        
-        // Check if the train has departed from this station
-        // Only mark as departed if the estimated arrival time is at least 5 minutes in the past
-        // This prevents marking trains as departed when they're just arriving
-        const estimatedArrivalTime = trainStatus.estimatedArrival ? new Date(trainStatus.estimatedArrival) : null;
-        const hasDeparted = entry.departed;
-        
-        // Add the departed flag and timezone information
-        trainStatus.departed = hasDeparted;
-        
-        // Update the current location if the train has departed
-        if (hasDeparted) {
-          trainStatus.currentLocation = `Departed from ${entry.stationName}`;
-        }
-        
-        // Add the train status to the array
-        trainStatuses.push(trainStatus);
-      }
-    }
-
-    let instanceIds = [...new Set(trainStatuses.map(status => status.instanceId))];
-    let instanceStatus = [];
-    let result = [];
-    for( let instance of instanceIds){
-      instanceStatus[instance] = trainStatuses.filter(status => status.instanceId == instance);
-      instanceStatus[instance].sort((a,b) => {
-
-        if(direction == 'eastbound'){
-          return railcamStations.indexOf(b.nextStation) - railcamStations.indexOf(a.nextStation)
-        }
-        else{
-          return railcamStations.indexOf(a.nextStation) - railcamStations.indexOf(b.nextStation)
-        }
-      })
-      result.push(instanceStatus[instance][0])
-    }    
-
-    return result;
+    // Return all statuses without filtering
+    return trainStatuses;
   } catch (error) {
     console.error(`Error scraping train status for train #${trainId}:`, error);
-    // Return default train statuses in case of error
     return [];
   }
 }
