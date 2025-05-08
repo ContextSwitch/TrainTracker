@@ -143,6 +143,9 @@ export async function scrapeTrainFromDixieland(
         if (stationCodeMatch) {
           const stationCode = stationCodeMatch[1];
           
+          // Check if there's an asterisk (*) to the left of the station code
+          const hasAsterisk = stationCell.html()?.includes('*') || false;
+          
           // Second cell contains the scheduled time
           const scheduledCell = cells.eq(1);
           const scheduledText = scheduledCell.text().trim();
@@ -150,6 +153,8 @@ export async function scrapeTrainFromDixieland(
           // Third cell contains the actual time and status
           const actualCell = cells.eq(2);
           const actualText = actualCell.text().trim();
+          
+          console.log(`Station ${stationCode}: Has Asterisk: ${hasAsterisk}, Scheduled: ${scheduledText}, Actual: ${actualText}`);
           
           // Check if this station has actual departure times
           // If the actual text includes 'Dp' followed by a time (not just 'Dp  '), 
@@ -169,7 +174,7 @@ export async function scrapeTrainFromDixieland(
             continue;
           }
           
-          // If we get here, this is the next station
+          // If we get here, this is the next station (first station without a departure time)
           nextStationCode = stationCode;
           nextStationName = stationText.replace(/\s*\([A-Z]{3}\)$/, '').trim();
           
@@ -180,6 +185,8 @@ export async function scrapeTrainFromDixieland(
             // If only arrival time is available, use that
             scheduledArrivalTime = scheduledText.replace('Ar', '').trim();
           }
+          
+          console.log(`Found next station: ${nextStationName} (${nextStationCode}), Scheduled arrival: ${scheduledArrivalTime}`);
           
           // We found the next station, so break the loop
           break;

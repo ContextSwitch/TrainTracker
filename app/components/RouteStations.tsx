@@ -71,7 +71,7 @@ const RouteStations: React.FC<RouteStationsProps> = ({
                 key={stationName}
                 className={`
                   py-1 px-2 rounded-md
-                  ${hasRailcam ? 'cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30' : ''}
+                  ${hasRailcam ? 'cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30' : 'cursor-default'}
                   ${isSelected ? 'bg-blue-100 dark:bg-blue-900/50' : ''}
                   ${isNextStop ? 'border-l-4 border-yellow-400 dark:border-yellow-600 pl-1' : ''}
                 `}
@@ -91,7 +91,7 @@ const RouteStations: React.FC<RouteStationsProps> = ({
                       </span>
                     )}
                     <span className={`
-                      ${hasRailcam ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300'}
+                      ${hasRailcam ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-500 dark:text-gray-500'}
                       ${isNextStop ? 'font-bold' : ''}
                     `}>
                       {stationName}

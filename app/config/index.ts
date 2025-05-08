@@ -11,6 +11,9 @@ export const appConfig: AppConfig = {
   // Continue showing webcam for 30 minutes after arrival
   postArrivalWindowMinutes: 30,
   
+  // Notifications are disabled by default
+  notificationsEnabled: false,
+  
   // List of stations with railcams along the Southwest Chief route
   stations: [
     {
@@ -80,19 +83,48 @@ export const appConfig: AppConfig = {
 
 // Helper function to get a station by name
 export function getStationByName(name: string) {
+  if (!name) return null;
+  
+  // Clean up the name by removing state abbreviations and commas
+  const cleanName = name.replace(/,\s*[A-Z]{2}$/, '').trim();
+  
+  // Special case for Kansas City
+  if (cleanName === 'Kansas City') {
+    const kansasCity = appConfig.stations.find(station => 
+      station.name.startsWith('Kansas City')
+    );
+    if (kansasCity) {
+      return kansasCity;
+    }
+  }
+  
   // First try exact match
   const exactMatch = appConfig.stations.find(station => 
-    station.name.toLowerCase() === name.toLowerCase()
+    station.name.toLowerCase() === cleanName.toLowerCase()
   );
   
   if (exactMatch) {
     return exactMatch;
   }
   
-  // If no exact match, try partial match
+  // If no exact match, try partial match with the city name only
+  // This will match "Kansas City, MO" with "Kansas City - Union Station"
+  const cityName = cleanName.split(' - ')[0].trim();
+  const partialMatch = appConfig.stations.find(station => {
+    const stationCity = station.name.split(' - ')[0].trim().toLowerCase();
+    return stationCity === cityName.toLowerCase() || 
+           stationCity.includes(cityName.toLowerCase()) || 
+           cityName.toLowerCase().includes(stationCity);
+  });
+  
+  if (partialMatch) {
+    return partialMatch;
+  }
+  
+  // If still no match, try a more general partial match
   return appConfig.stations.find(station => 
-    station.name.toLowerCase().includes(name.toLowerCase()) ||
-    name.toLowerCase().includes(station.name.toLowerCase())
+    station.name.toLowerCase().includes(cleanName.toLowerCase()) ||
+    cleanName.toLowerCase().includes(station.name.toLowerCase())
   );
 }
 

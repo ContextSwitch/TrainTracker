@@ -1,5 +1,6 @@
 import React from 'react';
 import { TrainStatus as TrainStatusType, RailcamStation } from '../types';
+import { getStationByName } from '../config';
 
 interface TrainInstanceProps {
   trainStatus: TrainStatusType;
@@ -22,6 +23,10 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
     return null;
   }
   
+  // Check if there is a railcam at the next station
+  const hasRailcam = !!getStationByName(trainStatus.nextStation);
+  
+  
   // Get the current time and the estimated arrival time
   const now = new Date();
   const eta = new Date(trainStatus.estimatedArrival);
@@ -42,19 +47,23 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   const hasPassed = actualMinutesAway <= 0;
   
   // Determine the border color based on selection status
-  const borderColor = isSelected
+  const borderColor = isSelected && hasRailcam
     ? 'border-blue-500 dark:border-blue-400'
     : 'border-gray-200 dark:border-gray-700';
   
   // Determine the background color based on selection status
-  const bgColor = isSelected
+  const bgColor = isSelected && hasRailcam
     ? 'bg-blue-50 dark:bg-blue-900/20'
     : 'bg-white dark:bg-gray-800';
   
   return (
     <div 
-      className={`p-3 mb-3 rounded-md border ${borderColor} ${bgColor} cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors`}
-      onClick={() => onSelectStation(trainStatus.trainId, trainStatus.nextStation || '')}
+      className={`p-3 mb-3 rounded-md border ${borderColor} ${bgColor} ${hasRailcam ? 'cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30' : 'cursor-default'} transition-colors`}
+      onClick={() => {
+        if (hasRailcam) {
+          onSelectStation(trainStatus.trainId, trainStatus.nextStation || '');
+        }
+      }}
     >
       <div className="flex justify-between items-start mb-2">
         <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-700 dark:text-gray-300">
@@ -63,9 +72,16 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
       </div>
       <div className="flex justify-between items-start">
         <div>
-          <p className="font-medium text-gray-800 dark:text-gray-200">
-            {trainStatus.nextStation}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className={`font-medium ${hasRailcam ? 'text-gray-800 dark:text-gray-200' : 'text-gray-500 dark:text-gray-500'}`}>
+              {trainStatus.nextStation}
+            </p>
+            {hasRailcam && (
+              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
+                Railcam
+              </span>
+            )}
+          </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {hasPassed 
               ? `Expected ${Math.abs(actualMinutesAway)} min ago` 
@@ -74,7 +90,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
           </p>
         </div>
         <div className="flex items-center">
-          {isSelected && (
+          {isSelected && hasRailcam && (
             <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
           )}
           <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">

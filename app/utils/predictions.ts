@@ -45,10 +45,10 @@ export function getStationTimeZoneOffset(stationName: string): number {
 
 /**
  * Determines if a train is approaching a railcam station
- * @param trainStatus The current train status
+ * @param trainStatus The current train status (can be partial for testing)
  * @returns Information about the approaching train and station
  */
-export function checkTrainApproaching(trainStatus: TrainStatus): TrainApproaching {
+export function checkTrainApproaching(trainStatus: Partial<TrainStatus>): TrainApproaching {
   // Default response when not approaching any station
   const notApproaching: TrainApproaching = {
     approaching: false
@@ -74,7 +74,10 @@ export function checkTrainApproaching(trainStatus: TrainStatus): TrainApproachin
   // Check if the train is within the approach window or post-arrival window
   // Show the webcam if the train is expected to arrive within X minutes
   // or has arrived within the last Y minutes
-  if (minutesAway <= appConfig.approachWindowMinutes && minutesAway >= -appConfig.postArrivalWindowMinutes) {
+  // Make sure minutesAway is not extremely negative (train passed a long time ago)
+  if (minutesAway <= appConfig.approachWindowMinutes && 
+      minutesAway >= -appConfig.postArrivalWindowMinutes && 
+      minutesAway > -60) { // Don't show trains that passed more than an hour ago
     return {
       approaching: true,
       station,
@@ -89,10 +92,10 @@ export function checkTrainApproaching(trainStatus: TrainStatus): TrainApproachin
 
 /**
  * Process a single train status to find the next railcam station
- * @param trainStatus The current train status
+ * @param trainStatus The current train status (can be partial for testing)
  * @returns The next railcam station, estimated arrival time, and minutes away
  */
-function processSingleTrainStatus(trainStatus: TrainStatus): {
+function processSingleTrainStatus(trainStatus: Partial<TrainStatus> & { direction: 'eastbound' | 'westbound' }): {
   station: RailcamStation;
   estimatedArrival: string;
   minutesAway: number;
@@ -194,10 +197,10 @@ function processSingleTrainStatus(trainStatus: TrainStatus): {
 
 /**
  * Finds the next railcam station along the route
- * @param trainStatus The current train status or an array of train statuses
+ * @param trainStatus The current train status or an array of train statuses (can be partial for testing)
  * @returns The next railcam station, estimated arrival time, and minutes away
  */
-export function findNextRailcamStation(trainStatus: TrainStatus | TrainStatus[]): {
+export function findNextRailcamStation(trainStatus: Partial<TrainStatus> | Partial<TrainStatus>[]): {
   station: RailcamStation;
   estimatedArrival: string;
   minutesAway: number;
@@ -220,14 +223,18 @@ export function findNextRailcamStation(trainStatus: TrainStatus | TrainStatus[])
     
     for (let i = 0; i < validTrains.length; i++) {
       const train = validTrains[i];
-      const result = processSingleTrainStatus(train);
       
-      if (result) {
-        railcamStations.push({
-          ...result,
-          trainId: train.trainId,
-          trainIndex: i
-        });
+      // Check if the train has a direction property
+      if (train.direction === 'eastbound' || train.direction === 'westbound') {
+        const result = processSingleTrainStatus(train as Partial<TrainStatus> & { direction: 'eastbound' | 'westbound' });
+        
+        if (result) {
+          railcamStations.push({
+            ...result,
+            trainId: train.trainId,
+            trainIndex: i
+          });
+        }
       }
     }
     
@@ -240,18 +247,22 @@ export function findNextRailcamStation(trainStatus: TrainStatus | TrainStatus[])
   }
   
   // For a single train status, use the helper function
-  const result = processSingleTrainStatus(trainStatus);
-  return result;
+  // Check if the trainStatus has a direction property
+  if (trainStatus.direction === 'eastbound' || trainStatus.direction === 'westbound') {
+    const result = processSingleTrainStatus(trainStatus as Partial<TrainStatus> & { direction: 'eastbound' | 'westbound' });
+    return result;
+  }
+  return null;
 }
 
 /**
  * Generates a human-readable status message
- * @param trainStatus The current train status
+ * @param trainStatus The current train status (can be partial for testing)
  * @param approaching Information about approaching a railcam
  * @returns A human-readable status message
  */
 export function generateStatusMessage(
-  trainStatus: TrainStatus,
+  trainStatus: Partial<TrainStatus> & { trainId: string, direction: 'eastbound' | 'westbound', lastUpdated: string, status: string },
   approaching: TrainApproaching
 ): string {
   if (approaching.approaching && approaching.station && approaching.minutesAway !== undefined) {

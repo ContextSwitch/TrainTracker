@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["mocha", "chai", "sinon", "node"],
+    "esModuleInterop": true
+  },
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx"
+  ]
+}

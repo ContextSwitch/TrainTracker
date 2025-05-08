@@ -10,6 +10,7 @@ interface TrainStatusProps {
   approaching: TrainApproaching;
   allTrainStatuses?: TrainStatusType[];
   onSelectStation?: (trainId: string, stationName: string) => void;
+  selectedStation?: string;
 }
 
 /**
@@ -21,7 +22,8 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
   direction,
   approaching,
   allTrainStatuses = [],
-  onSelectStation = () => {}
+  onSelectStation = () => {},
+  selectedStation
 }) => {
   if (!trainStatus) {
     return (
@@ -55,10 +57,8 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
   // Check if there are multiple train instances
   const hasMultipleInstances = allTrainStatuses && allTrainStatuses.length > 1;
   
-  // Find the currently selected station name (if any)
-  const selectedStationName = approaching.approaching && approaching.station 
-    ? approaching.station.name 
-    : null;
+  // Get the selected station name from props
+  const selectedStationName = selectedStation;
     
   // Pre-calculate next railcam stations for all train statuses to avoid multiple calls
   const nextRailcamStations = useMemo(() => {
@@ -109,7 +109,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
         {/* Next Railcam Viewing Section */}
         <div className="mt-3">
           <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2">
-            {hasMultipleInstances ? 'Next Railcam Viewings' : 'Next Railcam Viewing'}
+            {hasMultipleInstances ? 'Next Stops' : 'Next Stop'}
           </h4>
           
           {/* If there are multiple instances, show each one */}
@@ -138,7 +138,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
                     <TrainInstance
                       key={`${status.trainId}-${index}-${status.nextStation || 'unknown'}`}
                       trainStatus={updatedStatus}
-                      isSelected={selectedStationName === nextStationName}
+                      isSelected={selectedStationName === status.nextStation}
                       onSelectStation={onSelectStation}
                       instanceId={index}
                     />
@@ -153,7 +153,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
                   ...trainStatus,
                   estimatedArrival: approaching.eta
                 } : trainStatus}
-                isSelected={!!selectedStationName}
+                isSelected={selectedStationName === trainStatus.nextStation}
                 onSelectStation={onSelectStation}
                 instanceId={0}
               />

@@ -47,6 +47,7 @@ export interface AppConfig {
   checkIntervalMinutes: number;
   approachWindowMinutes: number;
   postArrivalWindowMinutes: number;
+  notificationsEnabled: boolean;
   stations: RailcamStation[];
   trainUrls: {
     '3': string;

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { CurrentStatus, TrainStatus } from './types';
+import { CurrentStatus, TrainStatus, TrainApproaching } from './types';
 import YouTubePlayer from './components/YouTubePlayer';
 import TrainStatusComponent from './components/TrainStatus';
 import NotificationManager from './components/NotificationManager';
@@ -122,6 +122,13 @@ export default function Home() {
       // Update the current status with the response, but preserve the message
       const updatedStatus = await response.json();
       
+      // Update the showVideoFor state based on the selected train
+      if (trainId === '3') {
+        setShowVideoFor(updatedStatus.train3);
+      } else {
+        setShowVideoFor(updatedStatus.train4);
+      }
+      
       // Only update the selected train's information, not the entire status
       setCurrentStatus(prevStatus => {
         if (trainId === '3') {
@@ -158,28 +165,34 @@ export default function Home() {
     return () => clearInterval(intervalId);
   }, []);
 
-  // Determine which train to show the video for
-  // Show the last selected train if it's approaching, otherwise use default priority
-  const showVideoFor = lastSelectedTrain === '4' && currentStatus.train4.approaching
-    ? currentStatus.train4
-    : lastSelectedTrain === '3' && currentStatus.train3.approaching
-      ? currentStatus.train3
-      : currentStatus.train3.approaching
-        ? currentStatus.train3
-        : currentStatus.train4.approaching
-          ? currentStatus.train4
-          : null;
+  // State to track which train to show video for
+  const [showVideoFor, setShowVideoFor] = useState<TrainApproaching | null>(null);
+  
+  // Initialize showVideoFor based on approaching trains
+  useEffect(() => {
+    if (!showVideoFor) {
+      if (currentStatus.train3.approaching) {
+        setShowVideoFor(currentStatus.train3);
+      } else if (currentStatus.train4.approaching) {
+        setShowVideoFor(currentStatus.train4);
+      }
+    }
+  }, [currentStatus, showVideoFor]);
+  
 
   return (
     <div className="min-h-screen p-4 md:p-8 dark:bg-gray-900">
-      <header className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold dark:text-white">Southwest Chief Railcam Tracker</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Track the Amtrak Southwest Chief and watch it pass by railcams along the route
-          </p>
+      <header className="mb-8">
+        <div className="flex justify-between items-center">
+          <div className="w-10"></div> {/* Spacer to balance the ThemeToggle */}
+          <div className="text-center">
+            <h1 className="text-3xl font-bold dark:text-white">Southwest Chief Railcam Tracker</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Track the Amtrak Southwest Chief and watch it pass by railcams along the route
+            </p>
+          </div>
+          <ThemeToggle />
         </div>
-        <ThemeToggle />
       </header>
       
       <main className="max-w-7xl mx-auto">
@@ -249,6 +262,7 @@ export default function Home() {
                 approaching={currentStatus.train3}
                 allTrainStatuses={train3Statuses}
                 onSelectStation={handleSelectStation}
+                selectedStation={showVideoFor?.station?.name}
               />
               <TrainStatusComponent
                 trainId="4"
@@ -257,6 +271,7 @@ export default function Home() {
                 approaching={currentStatus.train4}
                 allTrainStatuses={train4Statuses}
                 onSelectStation={handleSelectStation}
+                selectedStation={showVideoFor?.station?.name}
               />
             </div>
             
@@ -314,8 +329,13 @@ export default function Home() {
           Data sourced from dixielandsoftware.net | Railcam videos from YouTube
         </p>
         <p className="mt-1">
-          Times and Locations are for entertainment purposes only and are not gaurenteed to be correct.
+          Times and locations are for entertainment purposes only and are not guaranteed to be correct.
         </p>
+        <div className="mt-4 flex justify-center space-x-4">
+          <a href="/about" className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+            About
+          </a>
+        </div>
       </footer>
     </div>
   );
