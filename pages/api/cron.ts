@@ -56,13 +56,13 @@ export default async function handler(
     
     try {
       console.log('Scraping data for train #3...');
-      const scraped3 = await scrapeTrainStatus(appConfig.trainUrls['3'], '3');
+      const scraped3 = (await scrapeTrainStatus(appConfig.trainUrls['3'], '3'))
       train3Statuses = scraped3;
       console.log(`Found ${scraped3.length} statuses for train #3`);
       console.log('Train #3 statuses:', JSON.stringify(scraped3, null, 2));
       
       console.log('Scraping data for train #4...');
-      const scraped4 = await scrapeTrainStatus(appConfig.trainUrls['4'], '4');
+      const scraped4 = (await scrapeTrainStatus(appConfig.trainUrls['4'], '4'))
       train4Statuses = scraped4;
       console.log(`Found ${scraped4.length} statuses for train #4`);
       console.log('Train #4 statuses:', JSON.stringify(scraped4, null, 2));
@@ -115,6 +115,8 @@ function saveTrainStatus(trainStatus: TrainStatus): void {
   // Path to the train status file
   const trainStatusFile = path.join(dataDir, 'train_status.json');
   
+
+
   // Read existing data
   let trainData: Record<string, TrainStatus[]> = {};
   if (fs.existsSync(trainStatusFile)) {
@@ -144,12 +146,22 @@ function saveTrainStatus(trainStatus: TrainStatus): void {
     trainData[trainStatus.trainId].push(trainStatus);
   }
   
+  trainData = removeStaleData(trainData);
+
   // Write the data back to the file
   try {
     fs.writeFileSync(trainStatusFile, JSON.stringify(trainData, null, 2));
   } catch (error) {
     console.error('Error writing train status file:', error);
   }
+}
+
+function removeStaleData(trainData: Record<string, TrainStatus[]>): Record<string, TrainStatus[]> {
+
+  trainData[3] = trainData[3].filter(train => train.trainId && train.nextStation != 'Los Angeles, CA');
+  trainData[4] = trainData[4].filter(train => train.trainId && train.nextStation != 'Chicago, IL');
+
+  return trainData;
 }
 
 /**

@@ -36,11 +36,23 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
 
   // Calculate real-time minutes away for approaching train
   let realTimeMinutesAway = approaching.minutesAway || 0;
+  console.log('realTimeMinutesAway1 = ', realTimeMinutesAway)
+
   if (approaching.approaching && approaching.eta) {
     const now = new Date();
     const eta = new Date(approaching.eta);
     realTimeMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
+
   }
+
+  while(realTimeMinutesAway > 720 && realTimeMinutesAway > 0){
+    realTimeMinutesAway -=1440;
+  }
+
+  if(realTimeMinutesAway < -900){
+    realTimeMinutesAway +=1440;
+  }
+  console.log('realTimeMinutesAway2 = ', realTimeMinutesAway)
 
   // Generate a human-readable status message with real-time minutes
   const updatedApproaching = {
@@ -91,8 +103,8 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
         )}
         
         {trainStatus.delayMinutes !== undefined && trainStatus.delayMinutes > 0 && (
-          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-            <span className="font-medium">Delay:</span> {
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400" hidden>
+            <span className="font-medium" >Delay:</span> {
               trainStatus.delayMinutes >= 60 
                 ? `${Math.floor(trainStatus.delayMinutes / 60)} hour${Math.floor(trainStatus.delayMinutes / 60) !== 1 ? 's' : ''}, ${trainStatus.delayMinutes % 60} minute${trainStatus.delayMinutes % 60 !== 1 ? 's' : ''}`
                 : `${trainStatus.delayMinutes} minute${trainStatus.delayMinutes !== 1 ? 's' : ''}`

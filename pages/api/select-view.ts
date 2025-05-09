@@ -78,6 +78,10 @@ export default function handler(
           const now = new Date();
           const etaDate = new Date(eta);
           minutesAway = Math.floor((etaDate.getTime() - now.getTime()) / (1000 * 60));
+          if(minutesAway < -900){
+            minutesAway+=1440;
+          }
+
         } else {
           console.log('No matching train status found, using current time as ETA');
         }

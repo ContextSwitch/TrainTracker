@@ -35,7 +35,7 @@ export default function Home() {
     try {
       setLoading(true);
       setError(null);
-      
+      console.log('0000 current status')
       // Fetch the current status from the API
       const statusResponse = await fetch('/api/status');
       
@@ -121,7 +121,7 @@ export default function Home() {
       
       // Update the current status with the response, but preserve the message
       const updatedStatus = await response.json();
-      
+      console.log('-----updatedStatus', updatedStatus)
       // Update the showVideoFor state based on the selected train
       if (trainId === '3') {
         setShowVideoFor(updatedStatus.train3);

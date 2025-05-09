@@ -112,7 +112,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
       
       {trainStatus.status && trainStatus.status !== 'On time' && (
         <p className="mt-1 text-xs text-red-500 dark:text-red-400">
-          Delay: {trainStatus.status}
+          Status: {trainStatus.status}
         </p>
       )}
     </div>
