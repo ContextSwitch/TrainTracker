@@ -275,7 +275,13 @@ export function generateStatusMessage(
     if (eta) {
       actualMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
     }
-
+    while(actualMinutesAway > 720 && actualMinutesAway > 0){
+      actualMinutesAway -=1440;
+    }
+  
+    if(actualMinutesAway < -900){
+      actualMinutesAway +=1440;
+    }
     // Include instance ID if available
     const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
     

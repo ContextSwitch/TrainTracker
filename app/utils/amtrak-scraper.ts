@@ -128,6 +128,14 @@ export async function scrapeTrainFromDixieland(
     let delayText = '';
     let departed = false;
     
+    // Variables to track the last station with arrival/departure data
+    let lastStationWithDataCode = '';
+    let lastStationWithDataName = '';
+    let lastStationScheduledTime = '';
+    let foundStationWithoutDeparture = false;
+    
+    console.log(`Searching for next station for train #${trainId}...`);
+    
     // Skip the header row (first row)
     for (let i = 1; i < rows.length; i++) {
       const row = rows.eq(i);
@@ -163,20 +171,29 @@ export async function scrapeTrainFromDixieland(
             // Train has departed this station
             console.log(`Station ${stationCode} has already departed: ${actualText}`);
             
-          // Extract delay information if available
-          const hourMinuteDelayMatch = actualText.match(/(\d+)\s+hour(?:s)?,\s+(\d+)\s+minute(?:s)?\s+late/i);
-          const minuteDelayMatch = actualText.match(/(\d+)\s+minute(?:s)?\s+late/i);
-          
-          if (hourMinuteDelayMatch) {
-            const hours = parseInt(hourMinuteDelayMatch[1], 10);
-            const minutes = parseInt(hourMinuteDelayMatch[2], 10);
-            delayText = `${hours} hour${hours !== 1 ? 's' : ''}, ${minutes} minute${minutes !== 1 ? 's' : ''} late`;
-          } else if (minuteDelayMatch) {
-            delayText = `${minuteDelayMatch[1]} minutes late`;
-          } else if (actualText.includes('On time')) {
-            delayText = 'On time';
-          }
+            // Update the last station with data
+            lastStationWithDataCode = stationCode;
+            lastStationWithDataName = stationText.replace(/\s*\([A-Z]{3}\)$/, '').trim();
+            lastStationScheduledTime = scheduledText.includes('Dp') 
+              ? scheduledText.replace('Dp', '').trim() 
+              : scheduledText.includes('Ar') 
+                ? scheduledText.replace('Ar', '').trim() 
+                : '';
             
+            // Extract delay information if available
+            const hourMinuteDelayMatch = actualText.match(/(\d+)\s+hour(?:s)?,\s+(\d+)\s+minute(?:s)?\s+late/i);
+            const minuteDelayMatch = actualText.match(/(\d+)\s+minute(?:s)?\s+late/i);
+            
+            if (hourMinuteDelayMatch) {
+              const hours = parseInt(hourMinuteDelayMatch[1], 10);
+              const minutes = parseInt(hourMinuteDelayMatch[2], 10);
+              delayText = `${hours} hour${hours !== 1 ? 's' : ''}, ${minutes} minute${minutes !== 1 ? 's' : ''} late`;
+            } else if (minuteDelayMatch) {
+              delayText = `${minuteDelayMatch[1]} minutes late`;
+            } else if (actualText.includes('On time')) {
+              delayText = 'On time';
+            }
+              
             continue;
           }
           
@@ -194,13 +211,30 @@ export async function scrapeTrainFromDixieland(
           
           console.log(`Found next station: ${nextStationName} (${nextStationCode}), Scheduled arrival: ${scheduledArrivalTime}`);
           
+          // We found a station without departure time
+          foundStationWithoutDeparture = true;
+          
           // We found the next station, so break the loop
           break;
         }
       }
     }
     
-    // If we didn't find a next station, return null
+    // If we didn't find a station without departure time but have a last station with data,
+    // use that as the next station (this handles the case where the train has reached Chicago)
+    if (!foundStationWithoutDeparture && lastStationWithDataCode) {
+      console.log(`No station without departure time found for train #${trainId}, but found last station with data`);
+      console.log(`foundStationWithoutDeparture=${foundStationWithoutDeparture}, lastStationWithDataCode=${lastStationWithDataCode}`);
+      
+      nextStationCode = lastStationWithDataCode;
+      nextStationName = lastStationWithDataName;
+      scheduledArrivalTime = lastStationScheduledTime;
+      departed = true; // Mark as departed since this is the last station with data
+      
+      console.log(`Using last station with data: ${nextStationName} (${nextStationCode}), Scheduled time: ${scheduledArrivalTime}, departed=${departed}`);
+    }
+    
+    // If we didn't find any station, return null
     if (!nextStationCode) {
       console.error(`No next station found for train #${trainId} on ${date.toISOString().split('T')[0]}`);
       return null;

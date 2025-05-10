@@ -61,10 +61,8 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
   };
   const statusMessage = generateStatusMessage(trainStatus, updatedApproaching);
 
-  // Determine status color based on approaching status
-  const statusColor = approaching.approaching
-    ? 'bg-green-100 border-green-300 dark:bg-green-900/50 dark:border-green-800'
-    : 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-800';
+  // Use neutral background color regardless of approaching status
+  const statusColor = 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-800';
 
   // Check if there are multiple train instances
   const hasMultipleInstances = allTrainStatuses && allTrainStatuses.length > 1;
@@ -155,6 +153,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
                       key={`${status.trainId}-${index}-${status.nextStation || 'unknown'}`}
                       trainStatus={updatedStatus}
                       isSelected={selectedStationName === status.nextStation}
+                      isApproaching={isApproaching}
                       onSelectStation={onSelectStation}
                       instanceId={index}
                     />
@@ -170,6 +169,9 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
                   estimatedArrival: approaching.eta
                 } : trainStatus}
                 isSelected={selectedStationName === trainStatus.nextStation}
+                isApproaching={approaching.approaching && 
+                  approaching.station && 
+                  trainStatus.nextStation === approaching.station.name}
                 onSelectStation={onSelectStation}
                 instanceId={0}
               />

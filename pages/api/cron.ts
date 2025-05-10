@@ -158,6 +158,7 @@ function saveTrainStatus(trainStatus: TrainStatus): void {
 
 function removeStaleData(trainData: Record<string, TrainStatus[]>): Record<string, TrainStatus[]> {
 
+
   trainData[3] = trainData[3].filter(train => train.trainId && train.nextStation != 'Los Angeles, CA');
   trainData[4] = trainData[4].filter(train => train.trainId && train.nextStation != 'Chicago, IL');
 

@@ -5,6 +5,7 @@ import { getStationByName } from '../config';
 interface TrainInstanceProps {
   trainStatus: TrainStatusType;
   isSelected: boolean;
+  isApproaching?: boolean;
   onSelectStation: (trainId: string, stationName: string) => void;
   instanceId: number;
 }
@@ -15,6 +16,7 @@ interface TrainInstanceProps {
 const TrainInstance: React.FC<TrainInstanceProps> = ({
   trainStatus,
   isSelected,
+  isApproaching,
   onSelectStation,
   instanceId
 }) => {
@@ -51,15 +53,24 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   // Determine if the train has already passed the station
   const hasPassed = actualMinutesAway <= 0;
   
-  // Determine the border color based on selection status
-  const borderColor = isSelected && hasRailcam
-    ? 'border-blue-500 dark:border-blue-400'
-    : 'border-gray-200 dark:border-gray-700';
+  // Determine the border color based on selection and approaching status
+  let borderColor = 'border-gray-200 dark:border-gray-700';
+  if (isSelected && hasRailcam) {
+    borderColor = 'border-blue-500 dark:border-blue-400';
+  } else if (isApproaching && hasRailcam) {
+    borderColor = 'border-green-500 dark:border-green-400';
+  }
   
-  // Determine the background color based on selection status
-  const bgColor = isSelected && hasRailcam
-    ? 'bg-blue-50 dark:bg-blue-900/20'
-    : 'bg-white dark:bg-gray-800';
+  // Determine the background color based on selection and approaching status
+  let bgColor = 'bg-white dark:bg-gray-800';
+  if (isSelected && hasRailcam) {
+    bgColor = 'bg-blue-50 dark:bg-blue-900/20';
+  } else if (isApproaching && hasRailcam) {
+    bgColor = 'bg-green-50 dark:bg-green-900/20';
+  }
+  
+  // Debug logs to check prop values
+  console.log(`TrainInstance ${trainStatus.trainId}-${instanceId}: isSelected=${isSelected}, isApproaching=${isApproaching}, hasRailcam=${hasRailcam}, nextStation=${trainStatus.nextStation}, departed=${trainStatus.departed}`);
   
   return (
     <div 
@@ -72,7 +83,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
     >
       <div className="flex justify-between items-start mb-2">
         <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-700 dark:text-gray-300">
-          Train #{trainStatus.trainId} - Train {instanceId}
+          Train #{trainStatus.trainId} - Train {instanceId + 1}
         </span>
       </div>
       <div className="flex justify-between items-start">
@@ -96,7 +107,10 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
         </div>
         <div className="flex items-center">
           {isSelected && hasRailcam && (
-            <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
+            <div className="flex items-center mr-2">
+              <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Watching</span>
+            </div>
           )}
           <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">
             {new Date(trainStatus.estimatedArrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
