@@ -95,7 +95,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
         <p className="text-gray-700 dark:text-gray-300">{statusMessage}</p>
         
         {trainStatus.status && (
-          <p className="mt-1 text-sm dark:text-gray-300">
+          <p className="mt-1 text-sm dark:text-gray-300" hidden>
             <span className="font-medium">Status:</span> {trainStatus.status}
           </p>
         )}

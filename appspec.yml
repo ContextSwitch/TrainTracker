@@ -1,0 +1,15 @@
+version: 0.0
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: <TASK_DEFINITION>
+        LoadBalancerInfo:
+          ContainerName: "traintracker-container"
+          ContainerPort: 3000
+Hooks:
+  - BeforeInstall: "BeforeInstallHook"
+  - AfterInstall: "AfterInstallHook"
+  - AfterAllowTestTraffic: "AfterAllowTestTrafficHook"
+  - BeforeAllowTraffic: "BeforeAllowTrafficHook"
+  - AfterAllowTraffic: "AfterAllowTrafficHook"

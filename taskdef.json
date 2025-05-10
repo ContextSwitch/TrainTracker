@@ -1,0 +1,61 @@
+{
+  "family": "traintracker",
+  "executionRoleArn": "<EXECUTION_ROLE_ARN>",
+  "taskRoleArn": "<TASK_ROLE_ARN>",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+    {
+      "name": "traintracker-container",
+      "image": "<IMAGE>",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "name": "TRAIN_STATUS_TABLE",
+          "value": "<TRAIN_STATUS_TABLE>"
+        },
+        {
+          "name": "CURRENT_STATUS_TABLE",
+          "value": "<CURRENT_STATUS_TABLE>"
+        },
+        {
+          "name": "ASSETS_BUCKET",
+          "value": "<ASSETS_BUCKET>"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "<LOG_GROUP>",
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-stream-prefix": "traintracker"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:3000/ || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "512",
+  "memory": "1024"
+}

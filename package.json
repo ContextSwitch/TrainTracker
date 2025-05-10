@@ -9,9 +9,11 @@
     "lint": "next lint",
     "test": "mocha --require ts-node/register 'tests/**/*.test.ts'",
     "test:watch": "mocha --require ts-node/register --watch 'tests/**/*.test.ts'",
-    "test:coverage": "nyc mocha --require ts-node/register 'tests/**/*.test.ts'"
+    "test:coverage": "nyc mocha --require ts-node/register 'tests/**/*.test.ts'",
+    "test:integration": "mocha --require ts-node/register 'tests/integration/**/*.test.ts'"
   },
   "dependencies": {
+    "aws-sdk": "^2.1692.0",
     "axios": "^1.9.0",
     "cheerio": "^1.0.0",
     "next": "15.3.1",
