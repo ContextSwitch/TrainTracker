@@ -49,7 +49,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
     realTimeMinutesAway -=1440;
   }
 
-  if(realTimeMinutesAway < -900){
+  while(realTimeMinutesAway < -900 && realTimeMinutesAway < 0){
     realTimeMinutesAway +=1440;
   }
   console.log('realTimeMinutesAway2 = ', realTimeMinutesAway)
@@ -115,7 +115,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
             {realTimeMinutesAway >= 0 ? (
               `Arriving at ${approaching.station.name} in ${realTimeMinutesAway} minutes`
             ) : (
-              `Expected ${approaching.station.name} ${Math.abs(realTimeMinutesAway)} minutes ago`
+              `Expected in ${approaching.station.name} ${Math.abs(realTimeMinutesAway)} minutes ago`
             )}
           </p>
         )}

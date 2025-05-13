@@ -50,7 +50,7 @@ export const appConfig: AppConfig = {
     },
     {
       name: 'Lawrence',
-      youtubeLink: 'https://www.youtube.com/watch?v=HoWfxLcHDak'
+      youtubeLink: 'https://www.youtube.com/watch?v=NI_WrhG0TVA'
     },
     {
       name: 'Kansas City',

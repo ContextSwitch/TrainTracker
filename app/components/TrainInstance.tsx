@@ -50,6 +50,14 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
     timeUntilArrival = `${actualMinutesAway} min`;
   }
   
+  while(actualMinutesAway > 720 && actualMinutesAway > 0){
+    actualMinutesAway -=1440;
+  }
+
+  while(actualMinutesAway < -900 && actualMinutesAway < 0){
+    actualMinutesAway +=1440;
+  }
+
   // Determine if the train has already passed the station
   const hasPassed = actualMinutesAway <= 0;
   

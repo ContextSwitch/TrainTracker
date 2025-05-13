@@ -279,7 +279,7 @@ export function generateStatusMessage(
       actualMinutesAway -=1440;
     }
   
-    if(actualMinutesAway < -900){
+    while(actualMinutesAway < -900 && actualMinutesAway < 0){
       actualMinutesAway +=1440;
     }
     // Include instance ID if available
