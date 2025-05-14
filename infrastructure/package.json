@@ -1,7 +1,7 @@
 {
-  "name": "traintracker-infrastructure",
+  "name": "southwest-chief-railcam-tracker-infrastructure",
   "version": "0.1.0",
-  "description": "AWS CDK Infrastructure for TrainTracker",
+  "description": "AWS CDK Infrastructure for Southwest Chief Railcam Tracker",
   "main": "bin/app.js",
   "scripts": {
     "build": "tsc",

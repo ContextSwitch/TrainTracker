@@ -10,12 +10,12 @@ export function getStationTimeZoneOffset(stationName: string): number {
   // Pacific Time Zone stations (UTC-8 standard, UTC-7 daylight)
   const pacificStations = [
     'Los Angeles', 'Fullerton', 'Riverside', 'San Bernardino', 
-    'Victorville', 'Barstow', 'Needles', 'Flagstaff','Winslow'
+    'Victorville', 'Barstow', 'Needles', 'Flagstaff','Winslow', 'Kingman'
   ];
   
   // Mountain Time Zone stations (UTC-7 standard, UTC-6 daylight)
   const mountainStations = [
-    'Kingman', 'Gallup', 'Albuquerque',
+    'Gallup', 'Albuquerque',
     'Lamy', 'Las Vegas', 'Raton', 'Trinidad', 'La Junta'
   ];
   

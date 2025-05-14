@@ -16,20 +16,20 @@ const env = {
 };
 
 // Network infrastructure (shared)
-const networkStack = new NetworkStack(app, 'TrainTracker-Network', { env });
+const networkStack = new NetworkStack(app, 'SWChiefTracker-Network', { env });
 
 // Development environment
-const devDbStack = new DatabaseStack(app, 'TrainTracker-Dev-DB', { 
+const devDbStack = new DatabaseStack(app, 'SWChiefTracker-Dev-DB', { 
   env,
   environment: 'dev' 
 });
 
-const devStorageStack = new StorageStack(app, 'TrainTracker-Dev-Storage', {
+const devStorageStack = new StorageStack(app, 'SWChiefTracker-Dev-Storage', {
   env,
   environment: 'dev'
 });
 
-const devEcsStack = new EcsStack(app, 'TrainTracker-Dev-ECS', { 
+const devEcsStack = new EcsStack(app, 'SWChiefTracker-Dev-ECS', { 
   env,
   vpc: networkStack.vpc,
   environment: 'dev',
@@ -39,17 +39,17 @@ const devEcsStack = new EcsStack(app, 'TrainTracker-Dev-ECS', {
 });
 
 // Production environment
-const prodDbStack = new DatabaseStack(app, 'TrainTracker-Prod-DB', { 
+const prodDbStack = new DatabaseStack(app, 'SWChiefTracker-Prod-DB', { 
   env,
   environment: 'prod' 
 });
 
-const prodStorageStack = new StorageStack(app, 'TrainTracker-Prod-Storage', {
+const prodStorageStack = new StorageStack(app, 'SWChiefTracker-Prod-Storage', {
   env,
   environment: 'prod'
 });
 
-const prodEcsStack = new EcsStack(app, 'TrainTracker-Prod-ECS', { 
+const prodEcsStack = new EcsStack(app, 'SWChiefTracker-Prod-ECS', { 
   env,
   vpc: networkStack.vpc,
   environment: 'prod',
@@ -59,7 +59,7 @@ const prodEcsStack = new EcsStack(app, 'TrainTracker-Prod-ECS', {
 });
 
 // CI/CD Pipeline
-new PipelineStack(app, 'TrainTracker-Pipeline', {
+new PipelineStack(app, 'SWChiefTracker-Pipeline', {
   env,
   devService: devEcsStack.service,
   prodService: prodEcsStack.service,
@@ -67,7 +67,7 @@ new PipelineStack(app, 'TrainTracker-Pipeline', {
   prodCluster: prodEcsStack.cluster,
   repository: devEcsStack.repository,
   githubOwner: 'your-github-username',
-  githubRepo: 'traintracker',
+  githubRepo: 'southwest-chief-railcam-tracker',
   githubBranch: 'main'
 });
 

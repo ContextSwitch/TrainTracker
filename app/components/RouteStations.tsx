@@ -43,7 +43,7 @@ const RouteStations: React.FC<RouteStationsProps> = ({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
       <h3 className="text-lg font-semibold mb-3 dark:text-white">
-        {direction === 'westbound' ? 'Chicago → Los Angeles' : 'Los Angeles → Chicago'}
+        {direction === 'westbound' ? '#3 Chicago → Los Angeles' : '#4 Los Angeles → Chicago'}
       </h3>
       <div className="text-sm">
         <ul className="space-y-2">

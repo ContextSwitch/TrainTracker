@@ -1,6 +1,6 @@
-# TrainTracker
+# Southwest Chief Railcam Tracker
 
-A web application for tracking Amtrak trains and providing real-time status updates.
+A web application for tracking Amtrak's Southwest Chief train with live railcam feeds, providing real-time status updates between Chicago and Los Angeles.
 
 ## AWS Deployment Guide
 
@@ -44,7 +44,7 @@ aws secretsmanager create-secret \
 ```typescript
 // Update these values with your GitHub information
 githubOwner: 'your-github-username',
-githubRepo: 'traintracker',
+githubRepo: 'southwest-chief-railcam-tracker',
 githubBranch: 'main'
 ```
 
@@ -72,7 +72,7 @@ If you need to manually deploy the application:
 
 ```bash
 # Get the ECR repository URI
-export ECR_REPOSITORY_URI=$(aws ecr describe-repositories --repository-names traintracker-dev --query 'repositories[0].repositoryUri' --output text)
+export ECR_REPOSITORY_URI=$(aws ecr describe-repositories --repository-names swchieftracker-dev --query 'repositories[0].repositoryUri' --output text)
 
 # Login to ECR
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
@@ -86,10 +86,10 @@ docker push $ECR_REPOSITORY_URI:latest
 
 ```bash
 # For development environment
-aws ecs update-service --cluster TrainTracker-Dev-ECS --service TrainTracker-Dev-Service --force-new-deployment
+aws ecs update-service --cluster SWChiefTracker-Dev-ECS --service SWChiefTracker-Dev-Service --force-new-deployment
 
 # For production environment
-aws ecs update-service --cluster TrainTracker-Prod-ECS --service TrainTracker-Prod-Service --force-new-deployment
+aws ecs update-service --cluster SWChiefTracker-Prod-ECS --service SWChiefTracker-Prod-Service --force-new-deployment
 ```
 
 ### Environment Variables

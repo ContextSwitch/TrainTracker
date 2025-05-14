@@ -4,6 +4,58 @@ import { TrainStatus } from '../types';
 import { getStationByName } from '../config';
 import { getStationTimeZoneOffset } from './predictions';
 
+// Define the ordered list of stations for each train route
+// Train #3 (Southwest Chief) - Chicago to Los Angeles (westbound)
+const train3Stations = [
+  'Chicago', 'Naperville', 'Mendota', 'Princeton', 'Galesburg', 'Fort Madison', 'La Plata', 
+  'Kansas City', 'Lawrence', 'Topeka', 'Newton', 'Hutchinson', 'Dodge City', 'Garden City', 
+  'Lamar', 'La Junta', 'Trinidad', 'Raton', 'Las Vegas', 'Lamy', 'Albuquerque', 'Gallup', 
+  'Winslow', 'Flagstaff', 'Kingman', 'Needles', 'Barstow', 'Victorville', 'San Bernardino', 
+  'Riverside', 'Fullerton', 'Los Angeles'
+];
+
+// Train #4 (Southwest Chief) - Los Angeles to Chicago (eastbound)
+const train4Stations = [...train3Stations].reverse();
+
+/**
+ * Finds the next station in the route after the last visited station
+ * @param trainId The train ID ('3' or '4')
+ * @param lastVisitedStation The last station that was visited
+ * @returns The next station in the route
+ */
+function findNextStationInRoute(trainId: string, lastVisitedStation: string): string | null {
+  const stations = trainId === '3' ? train3Stations : train4Stations;
+  
+  // Find the index of the last visited station
+  // Use a more flexible matching approach to handle variations in station names
+  const lastVisitedIndex = stations.findIndex(station => {
+    const stationLower = station.toLowerCase();
+    const visitedLower = lastVisitedStation.toLowerCase();
+    
+    // Check if either name contains the other or if they share significant parts
+    return stationLower.includes(visitedLower) || 
+           visitedLower.includes(stationLower) ||
+           // Handle cases like "Las Vegas, NM" vs "Las Vegas"
+           (visitedLower.split(',')[0].trim() === stationLower.split(',')[0].trim());
+  });
+  
+  console.log(`Finding next station after ${lastVisitedStation} for train #${trainId}. Found at index: ${lastVisitedIndex}`);
+  
+  // If the station wasn't found, return null
+  if (lastVisitedIndex === -1) {
+    return null;
+  }
+  
+  // If it's the last station in the route, return that station again
+  if (lastVisitedIndex === stations.length - 1) {
+    console.log(`Last station in route reached: ${stations[lastVisitedIndex]}`);
+    return stations[lastVisitedIndex];
+  }
+  
+  // Otherwise, return the next station in the route
+  return stations[lastVisitedIndex + 1];
+}
+
 /**
  * Generates a URL for the dixielandsoftware.net train status page
  * @param trainId The train ID ('3' or '4')
@@ -197,41 +249,100 @@ export async function scrapeTrainFromDixieland(
             continue;
           }
           
-          // If we get here, this is the next station (first station without a departure time)
-          nextStationCode = stationCode;
-          nextStationName = stationText.replace(/\s*\([A-Z]{3}\)$/, '').trim();
-          
-          // Parse the scheduled time
-          if (scheduledText.includes('Dp')) {
-            scheduledArrivalTime = scheduledText.replace('Dp', '').trim();
-          } else if (scheduledText.includes('Ar')) {
-            // If only arrival time is available, use that
-            scheduledArrivalTime = scheduledText.replace('Ar', '').trim();
+          // This is a station without departure time
+          // We'll store it temporarily but not break the loop yet
+          if (!nextStationCode) {
+            nextStationCode = stationCode;
+            nextStationName = stationText.replace(/\s*\([A-Z]{3}\)$/, '').trim();
+            
+            // Parse the scheduled time
+            if (scheduledText.includes('Dp')) {
+              scheduledArrivalTime = scheduledText.replace('Dp', '').trim();
+            } else if (scheduledText.includes('Ar')) {
+              // If only arrival time is available, use that
+              scheduledArrivalTime = scheduledText.replace('Ar', '').trim();
+            }
+            
+            console.log(`Found station without departure time: ${nextStationName} (${nextStationCode}), Scheduled arrival: ${scheduledArrivalTime}`);
           }
-          
-          console.log(`Found next station: ${nextStationName} (${nextStationCode}), Scheduled arrival: ${scheduledArrivalTime}`);
           
           // We found a station without departure time
           foundStationWithoutDeparture = true;
-          
-          // We found the next station, so break the loop
-          break;
         }
       }
     }
     
-    // If we didn't find a station without departure time but have a last station with data,
-    // use that as the next station (this handles the case where the train has reached Chicago)
-    if (!foundStationWithoutDeparture && lastStationWithDataCode) {
-      console.log(`No station without departure time found for train #${trainId}, but found last station with data`);
-      console.log(`foundStationWithoutDeparture=${foundStationWithoutDeparture}, lastStationWithDataCode=${lastStationWithDataCode}`);
+    // After processing all stations, determine the next station based on the route
+    if (lastStationWithDataName) {
+      console.log(`Last station with departure data: ${lastStationWithDataName}`);
       
-      nextStationCode = lastStationWithDataCode;
-      nextStationName = lastStationWithDataName;
-      scheduledArrivalTime = lastStationScheduledTime;
-      departed = true; // Mark as departed since this is the last station with data
+      // Check if the last station with data is the final destination
+      const finalDestination = trainId === '3' ? 'Los Angeles' : 'Chicago';
+      const isFinalDestination = lastStationWithDataName.toLowerCase().includes(finalDestination.toLowerCase()) ||
+                                finalDestination.toLowerCase().includes(lastStationWithDataName.toLowerCase());
       
-      console.log(`Using last station with data: ${nextStationName} (${nextStationCode}), Scheduled time: ${scheduledArrivalTime}, departed=${departed}`);
+      if (isFinalDestination) {
+        // If the train has reached the final destination, set the next station to be the final destination
+        console.log(`Train has reached the final destination: ${finalDestination}`);
+        nextStationCode = lastStationWithDataCode;
+        nextStationName = lastStationWithDataName;
+        scheduledArrivalTime = lastStationScheduledTime;
+        departed = true; // Mark as departed since this is the final destination
+        
+        console.log(`Using final destination as next station: ${nextStationName} (${nextStationCode}), Scheduled time: ${scheduledArrivalTime}, departed=${departed}`);
+      } else {
+        // Find the next station in the route after the last visited station
+        const nextStationInRoute = findNextStationInRoute(trainId, lastStationWithDataName);
+        
+        if (nextStationInRoute) {
+          console.log(`Found next station in route after ${lastStationWithDataName}: ${nextStationInRoute}`);
+          
+          // If we already found a station without departure time and it matches the next station in route, use it
+          if (nextStationName && (
+              nextStationName.toLowerCase().includes(nextStationInRoute.toLowerCase()) ||
+              nextStationInRoute.toLowerCase().includes(nextStationName.toLowerCase())
+          )) {
+            console.log(`Using found station without departure time: ${nextStationName} (${nextStationCode})`);
+          } else {
+            // Otherwise, use the next station in the route
+            const originalNextStationName = nextStationName;
+            nextStationName = nextStationInRoute;
+            
+            // Keep the original station code if we're replacing with the route-based station
+            if (originalNextStationName && originalNextStationName !== nextStationName) {
+              console.log(`Replacing station ${originalNextStationName} with ${nextStationName} from route`);
+            }
+            
+            // If we don't have scheduled arrival time for this station, use a default
+            if (!scheduledArrivalTime) {
+              scheduledArrivalTime = '12:00P'; // Default to noon
+              console.log(`Using default scheduled time for ${nextStationName}: ${scheduledArrivalTime}`);
+            }
+            
+            console.log(`Using next station in route: ${nextStationName}, Scheduled time: ${scheduledArrivalTime}`);
+          }
+        } else {
+          // If there's no next station in the route, use the last station with data
+          console.log(`No next station found in route after ${lastStationWithDataName}`);
+          
+          // If we already have a next station without departure time, keep using that
+          if (nextStationName) {
+            console.log(`Keeping found station without departure time: ${nextStationName} (${nextStationCode})`);
+          } else {
+            // Otherwise use the last station with data
+            nextStationCode = lastStationWithDataCode;
+            nextStationName = lastStationWithDataName;
+            scheduledArrivalTime = lastStationScheduledTime;
+            departed = true; // Mark as departed since this is the last station with data
+            
+            console.log(`Using last station with data: ${nextStationName} (${nextStationCode}), Scheduled time: ${scheduledArrivalTime}, departed=${departed}`);
+          }
+        }
+      }
+    } else if (foundStationWithoutDeparture) {
+      // If we didn't find any station with departure data but found a station without departure time,
+      // use that as the next station (this handles the case where the train just started)
+      console.log(`No station with departure data found, using first station without departure time: ${nextStationName}`);
     }
     
     // If we didn't find any station, return null
@@ -301,7 +412,8 @@ export async function scrapeTrainFromDixieland(
       delayMinutes: delayMinutes > 0 ? delayMinutes : undefined,
       instanceId: getInstanceIdFromDate(date),
       isNext: false,
-      departed
+      departed,
+      currentLocation: lastStationWithDataName || undefined // Set the current location to the last visited station
     };
     
     return trainStatus;

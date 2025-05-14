@@ -36,8 +36,12 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   // Calculate the actual minutes away based on the current time and ETA
   let actualMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
   
-  if(actualMinutesAway < -60){
-    actualMinutesAway += 24*60;
+  while(actualMinutesAway > 720 && actualMinutesAway > 0){
+    actualMinutesAway -=1440;
+  }
+
+  while(actualMinutesAway < -900 && actualMinutesAway < 0){
+    actualMinutesAway +=1440;
   }
 
   // Format the time until arrival
@@ -49,14 +53,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   } else {
     timeUntilArrival = `${actualMinutesAway} min`;
   }
-  
-  while(actualMinutesAway > 720 && actualMinutesAway > 0){
-    actualMinutesAway -=1440;
-  }
 
-  while(actualMinutesAway < -900 && actualMinutesAway < 0){
-    actualMinutesAway +=1440;
-  }
 
   // Determine if the train has already passed the station
   const hasPassed = actualMinutesAway <= 0;
