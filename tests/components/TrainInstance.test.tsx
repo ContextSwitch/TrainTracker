@@ -3,7 +3,40 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { render } from '@testing-library/react';
 import TrainInstance from '../../app/components/TrainInstance';
-import { mockTrainStatus3, mockTrainStatus4Fort } from '../mocks/mockData';
+
+// Mock date for consistent testing
+const MOCK_DATE = new Date('2025-04-25T12:00:00Z');
+
+// Mock train statuses
+const mockTrainStatus3 = {
+  trainId: '3',
+  direction: 'westbound',
+  lastUpdated: MOCK_DATE.toISOString(),
+  currentLocation: 'En route',
+  nextStation: 'Gallup',
+  estimatedArrival: new Date(MOCK_DATE.getTime() + 4 * 60 * 60 * 1000).toISOString(), // 4 hours from now
+  status: 'On time',
+  delayMinutes: 0,
+  departed: false,
+  timezone: 'MDT',
+  instanceId: 1,
+  isNext: true
+};
+
+const mockTrainStatus4Fort = {
+  trainId: '4',
+  direction: 'eastbound',
+  lastUpdated: MOCK_DATE.toISOString(),
+  currentLocation: 'En route to Galesburg',
+  nextStation: 'Galesburg',
+  estimatedArrival: new Date(MOCK_DATE.getTime() + 1 * 60 * 60 * 1000).toISOString(), // 1 hour from now
+  status: 'On time',
+  delayMinutes: 0,
+  departed: false,
+  timezone: 'CDT',
+  instanceId: 1,
+  isNext: true
+};
 
 describe('TrainInstance Component', () => {
   let clock: sinon.SinonFakeTimers;
@@ -20,7 +53,7 @@ describe('TrainInstance Component', () => {
   
   it('should return null when there is no next railcam station', () => {
     // Mock findNextRailcamStation to return null
-    const originalModule = require('../../app/utils/predictions');
+    const originalModule = require('../../app/utils/predictions.js');
     const findNextRailcamStationStub = sinon.stub(originalModule, 'findNextRailcamStation').returns(null);
     
     const { container } = render(

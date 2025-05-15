@@ -2,15 +2,19 @@
   "name": "southwest-chief-railcam-tracker",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "mocha --require ts-node/register 'tests/**/*.test.ts'",
-    "test:watch": "mocha --require ts-node/register --watch 'tests/**/*.test.ts'",
-    "test:coverage": "nyc mocha --require ts-node/register 'tests/**/*.test.ts'",
-    "test:integration": "mocha --require ts-node/register 'tests/integration/**/*.test.ts'"
+    "test": "node tests/run-tests.js",
+    "test:watch": "mocha --watch",
+    "test:coverage": "nyc mocha",
+    "test:integration": "mocha 'tests/integration/**/*.test.{ts,tsx}'",
+    "test:unit": "mocha 'tests/utils/**/*.test.{ts,tsx}' 'tests/components/**/*.test.{ts,tsx}'",
+    "test:api": "mocha 'tests/api/**/*.test.{ts,tsx}'",
+    "test:safe": "node tests/run-tests.js"
   },
   "dependencies": {
     "aws-sdk": "^2.1692.0",
@@ -45,9 +49,11 @@
     "nock": "^14.0.4",
     "nyc": "^17.1.0",
     "sinon": "^20.0.0",
+    "sinon-chai": "^4.0.0",
     "supertest": "^7.1.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5"
   }
 }

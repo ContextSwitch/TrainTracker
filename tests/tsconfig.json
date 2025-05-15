@@ -2,7 +2,12 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "types": ["mocha", "chai", "sinon", "node"],
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "paths": {
+      "@/*": ["../*"]
+    }
   },
   "include": [
     "./**/*.ts",

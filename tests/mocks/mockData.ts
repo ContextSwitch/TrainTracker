@@ -1,4 +1,4 @@
-import { TrainStatus, RailcamStation, TrainApproaching, CurrentStatus } from '../../app/types';
+import { TrainStatus, RailcamStation, TrainApproaching, CurrentStatus } from '../../app/types/index.js';
 
 // Mock date for consistent testing
 export const MOCK_DATE = new Date('2025-04-25T12:00:00Z');
