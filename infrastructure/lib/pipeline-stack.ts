@@ -23,8 +23,8 @@ export class PipelineStack extends cdk.Stack {
     super(scope, id, props);
     
     // Create the pipeline
-    const pipeline = new codepipeline.Pipeline(this, 'TrainTrackerPipeline', {
-      pipelineName: 'TrainTracker-Pipeline'
+    const pipeline = new codepipeline.Pipeline(this, 'SWChiefTrackerPipeline', {
+      pipelineName: 'SWChiefTracker-Pipeline'
     });
     
     // Add source stage
@@ -156,7 +156,7 @@ export class PipelineStack extends cdk.Stack {
       }),
       environmentVariables: {
         API_URL: { 
-          value: `http://${props.devService.loadBalancer?.loadBalancerDnsName || 'localhost:3000'}` 
+          value: 'http://localhost:3000' // Will be updated with actual DNS name after deployment
         }
       }
     });

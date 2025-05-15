@@ -12,26 +12,39 @@ This project is set up to be deployed to AWS using AWS CDK with a CI/CD pipeline
 - Node.js 18 or later
 - Docker installed and running
 - GitHub repository for the project
+- AWS IAM user with the following permissions:
+  - cloudformation:*
+  - iam:*
+  - s3:*
+  - ecr:*
+  - ecs:*
+  - dynamodb:*
+  - logs:*
+  - elasticloadbalancing:*
+  - ec2:*
+  
+  For testing purposes, you can attach the 'AdministratorAccess' policy to your IAM user.
 
 ### Infrastructure Setup
 
 The infrastructure is defined as code using AWS CDK in the `infrastructure` directory.
 
-1. Install dependencies for the infrastructure project:
+1. Navigate to the infrastructure directory and run the setup script:
 
 ```bash
 cd infrastructure
-npm install
+chmod +x setup.sh
+./setup.sh
 ```
 
-2. Configure your AWS account and region:
+This script will:
+- Install dependencies
+- Install AWS CDK CLI if needed
+- Verify AWS credentials
+- Bootstrap your AWS environment
+- Provide guidance on next steps
 
-```bash
-export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-export AWS_REGION=us-east-1  # or your preferred region
-```
-
-3. Create a GitHub personal access token with `repo` and `admin:repo_hook` permissions and store it in AWS Secrets Manager:
+2. Create a GitHub personal access token with `repo` and `admin:repo_hook` permissions and store it in AWS Secrets Manager:
 
 ```bash
 aws secretsmanager create-secret \
@@ -39,7 +52,7 @@ aws secretsmanager create-secret \
   --secret-string YOUR_GITHUB_TOKEN
 ```
 
-4. Update the GitHub repository information in `infrastructure/bin/app.ts`:
+3. Update the GitHub repository information in `infrastructure/bin/app.ts`:
 
 ```typescript
 // Update these values with your GitHub information
@@ -48,11 +61,21 @@ githubRepo: 'southwest-chief-railcam-tracker',
 githubBranch: 'main'
 ```
 
+4. Review the CDK configuration in `infrastructure/cdk.json` to ensure it matches your requirements.
+
 5. Deploy the infrastructure:
 
 ```bash
-npm run cdk deploy -- --all
+cd infrastructure
+npm run deploy
 ```
+
+The deployment will create the following AWS resources:
+- VPC with public and private subnets
+- DynamoDB tables for train status data
+- S3 buckets for static assets
+- ECS Fargate clusters for running the application
+- CI/CD pipeline with CodePipeline and CodeBuild
 
 ### CI/CD Pipeline
 
@@ -72,7 +95,7 @@ If you need to manually deploy the application:
 
 ```bash
 # Get the ECR repository URI
-export ECR_REPOSITORY_URI=$(aws ecr describe-repositories --repository-names swchieftracker-dev --query 'repositories[0].repositoryUri' --output text)
+export ECR_REPOSITORY_URI=$(aws ecr describe-repositories --repository-names traintracker-dev --query 'repositories[0].repositoryUri' --output text)
 
 # Login to ECR
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com

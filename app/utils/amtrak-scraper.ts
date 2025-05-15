@@ -216,12 +216,21 @@ export async function scrapeTrainFromDixieland(
           
           console.log(`Station ${stationCode}: Has Asterisk: ${hasAsterisk}, Scheduled: ${scheduledText}, Actual: ${actualText}`);
           
-          // Check if this station has actual departure times
-          // If the actual text includes 'Dp' followed by a time (not just 'Dp  '), 
-          // it means the train has already departed this station
-          if (actualText.match(/Dp\s+\d+:\d+[AP]/) || actualText.match(/Dp\s+\d+[AP]/)) {
-            // Train has departed this station
-            console.log(`Station ${stationCode} has already departed: ${actualText}`);
+          // Check if this station has actual departure or arrival times
+          // If the actual text includes 'Dp' followed by a time, it means the train has already departed this station
+          // If the actual text includes 'Arrived:' but no 'Departed:', it might be the final destination
+          // Also check for arrival time without departure time (e.g., "Ar 422P")
+          const hasDeparted = actualText.match(/Dp\s+\d+:\d+[AP]/) || actualText.match(/Dp\s+\d+[AP]/);
+          const hasArrivedOnly = (actualText.match(/Arrived:/) && !actualText.match(/Departed:/)) || 
+                                (actualText.match(/Ar\s+\d+:\d+[AP]/) || actualText.match(/Ar\s+\d+[AP]/));
+          
+          if (hasDeparted || hasArrivedOnly) {
+            // Train has departed this station or arrived at final destination
+            if (hasDeparted) {
+              console.log(`Station ${stationCode} has already departed: ${actualText}`);
+            } else {
+              console.log(`Station ${stationCode} has arrived (potential final destination): ${actualText}`);
+            }
             
             // Update the last station with data
             lastStationWithDataCode = stationCode;
@@ -274,7 +283,7 @@ export async function scrapeTrainFromDixieland(
     
     // After processing all stations, determine the next station based on the route
     if (lastStationWithDataName) {
-      console.log(`Last station with departure data: ${lastStationWithDataName}`);
+      console.log(`Last station with departure/arrival data: ${lastStationWithDataName}`);
       
       // Check if the last station with data is the final destination
       const finalDestination = trainId === '3' ? 'Los Angeles' : 'Chicago';

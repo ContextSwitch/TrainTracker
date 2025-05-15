@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 
 // Secret key for JWT signing - should be in environment variables in production
 const JWT_SECRET = process.env.JWT_SECRET || 'traintracker-admin-secret';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123'; // Default password for development
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'WhereDidTheSunGo'; // Default password for development
 
 // Token expiration time
 const TOKEN_EXPIRATION = '24h';
