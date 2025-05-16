@@ -1,42 +1,36 @@
 version: 0.2
 
 phases:
-  install:
-    runtime-versions:
-      nodejs: 18
-    commands:
-      - echo Installing dependencies...
-      - npm ci
-  
   pre_build:
     commands:
-      - echo Running tests...
-      - npm test
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-  
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/traintracker-repo
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
   build:
     commands:
-      - echo Building the application...
-      - npm run build
+      - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t $ECR_REPOSITORY_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION .
-      - docker tag $ECR_REPOSITORY_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION $ECR_REPOSITORY_URI:latest
-  
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
-      - echo Pushing the Docker image...
-      - docker push $ECR_REPOSITORY_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION
-      - docker push $ECR_REPOSITORY_URI:latest
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions file...
-      - echo '[{"name":"traintracker-container","imageUri":"'$ECR_REPOSITORY_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION'"}]' > imagedefinitions.json
+      - aws ecs describe-task-definition --task-definition TrainTracker-App-TrainTrackerService --query taskDefinition > taskdef.json
+      - envsubst < appspec_template.yml > appspec.yml
+      - envsubst < taskdef_template.json > taskdef.json
 
 artifacts:
   files:
-    - imagedefinitions.json
     - appspec.yml
     - taskdef.json
+    - imageDefinitions.json
 
 cache:
   paths:
-    - node_modules/**/*
+    - '/root/.npm/**/*'

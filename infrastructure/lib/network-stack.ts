@@ -9,7 +9,7 @@ export class NetworkStack extends cdk.Stack {
     super(scope, id, props);
     
     // Create a VPC with public and private subnets
-    this.vpc = new ec2.Vpc(this, 'TrainTrackerVPC', {
+    this.vpc = new ec2.Vpc(this, 'SWChiefTrackerVPC', {
       maxAzs: 2,
       natGateways: 1,
       subnetConfiguration: [

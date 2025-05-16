@@ -11,10 +11,13 @@
     "deploy:dev": "cdk deploy SWChiefTracker-Network SWChiefTracker-Dev-DB SWChiefTracker-Dev-Storage SWChiefTracker-Dev-ECS",
     "deploy:prod": "cdk deploy SWChiefTracker-Network SWChiefTracker-Prod-DB SWChiefTracker-Prod-Storage SWChiefTracker-Prod-ECS",
     "deploy:pipeline": "cdk deploy SWChiefTracker-Pipeline",
+    "deploy:simplified": "cdk deploy --app \"node dist/bin/simplified-app.js\" --all",
     "destroy": "cdk destroy --all",
     "destroy:dev": "cdk destroy SWChiefTracker-Dev-ECS SWChiefTracker-Dev-Storage SWChiefTracker-Dev-DB",
     "destroy:prod": "cdk destroy SWChiefTracker-Prod-ECS SWChiefTracker-Prod-Storage SWChiefTracker-Prod-DB",
+    "destroy:simplified": "cdk destroy --app \"node dist/bin/simplified-app.js\" --all",
     "synth": "cdk synth",
+    "synth:simplified": "cdk synth --app \"node dist/bin/simplified-app.js\"",
     "setup": "./setup.sh",
     "diff": "cdk diff"
   },

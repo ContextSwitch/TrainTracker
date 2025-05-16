@@ -1,173 +1,236 @@
-# Southwest Chief Railcam Tracker
+# TrainTracker
 
-A web application for tracking Amtrak's Southwest Chief train with live railcam feeds, providing real-time status updates between Chicago and Los Angeles.
+A web application for tracking train status and providing real-time updates.
 
 ## AWS Deployment Guide
 
-This project is set up to be deployed to AWS using AWS CDK with a CI/CD pipeline that includes development and production environments.
+This project is set up to be deployed to AWS using AWS CDK. The deployment includes:
+
+- Production and development environments with ECS Fargate
+- CI/CD pipelines for automated deployments
+- ECR repositories for Docker images
+- Load balancers for traffic distribution
 
 ### Prerequisites
 
 - AWS CLI installed and configured with appropriate credentials
 - Node.js 18 or later
 - Docker installed and running
-- GitHub repository for the project
-- AWS IAM user with the following permissions:
-  - cloudformation:*
-  - iam:*
-  - s3:*
-  - ecr:*
-  - ecs:*
-  - dynamodb:*
-  - logs:*
-  - elasticloadbalancing:*
-  - ec2:*
-  
-  For testing purposes, you can attach the 'AdministratorAccess' policy to your IAM user.
+- AWS CDK installed globally (`npm install -g aws-cdk`)
 
-### Infrastructure Setup
+### Deployment Steps
 
-The infrastructure is defined as code using AWS CDK in the `infrastructure` directory.
+#### 1. Deploy the Infrastructure
 
-1. Navigate to the infrastructure directory and run the setup script:
+You can deploy either the production environment, development environment, or both:
+
+**Production Environment Only:**
+```bash
+# Navigate to the infrastructure directory
+cd infrastructure
+
+# Install dependencies
+npm install
+
+# Bootstrap CDK (only needed once per AWS account/region)
+cdk bootstrap
+
+# Deploy the production infrastructure
+./simplified-deploy.sh
+```
+
+**Development Environment Only:**
+```bash
+# Navigate to the infrastructure directory
+cd infrastructure
+
+# Deploy the development infrastructure
+./deploy-dev.sh
+```
+
+**Both Environments:**
+```bash
+# Navigate to the infrastructure directory
+cd infrastructure
+
+# Deploy both production and development infrastructures
+./deploy-all.sh
+```
+
+This will create:
+- VPC with public and isolated subnets
+- ECS Fargate cluster
+- Application Load Balancer
+- ECR Repository
+- CI/CD Pipeline
+
+#### 2. Build and Push the Docker Image
+
+After the infrastructure is deployed, you need to build and push the Docker image to the ECR repository:
 
 ```bash
-cd infrastructure
-chmod +x setup.sh
-./setup.sh
+# From the project root directory
+chmod +x push-image.sh
+./push-image.sh
 ```
 
 This script will:
-- Install dependencies
-- Install AWS CDK CLI if needed
-- Verify AWS credentials
-- Bootstrap your AWS environment
-- Provide guidance on next steps
+1. Get the ECR repository URI from the CloudFormation stack
+2. Build the Docker image
+3. Push the image to ECR
+4. Update the ECS service to use the new image
 
-2. Create a GitHub personal access token with `repo` and `admin:repo_hook` permissions and store it in AWS Secrets Manager:
+#### 3. Using the CI/CD Pipeline
+
+The CI/CD pipeline is set up to use an S3 bucket as the source. To deploy a new version:
+
+1. Zip your application code:
+   ```bash
+   git archive --format=zip HEAD -o source.zip
+   ```
+
+2. Upload the zip file to the S3 bucket:
+   ```bash
+   aws s3 cp source.zip s3://[SOURCE_BUCKET_NAME]/source.zip
+   ```
+
+   You can find the source bucket name in the CloudFormation outputs.
+
+3. The pipeline will automatically start and:
+   - Run tests
+   - Build the Docker image
+   - Push the image to ECR
+   - Deploy the new image to ECS
+
+### Environment Structure
+
+The deployment creates two main stacks:
+
+1. **TrainTracker-App**: Contains the application infrastructure
+   - VPC
+   - ECS Cluster
+   - Fargate Service
+   - Load Balancer
+   - ECR Repository
+
+2. **TrainTracker-Pipeline**: Contains the CI/CD pipeline
+   - Source stage (S3)
+   - Test stage
+   - Build stage
+   - Deploy stage
+
+### Accessing the Application
+
+Once deployed, you can access the application using the Load Balancer URL, which is provided in the CloudFormation outputs:
 
 ```bash
-aws secretsmanager create-secret \
-  --name github-token \
-  --secret-string YOUR_GITHUB_TOKEN
+aws cloudformation describe-stacks --stack-name TrainTracker-App --query "Stacks[0].Outputs[?OutputKey=='URL'].OutputValue" --output text
 ```
 
-3. Update the GitHub repository information in `infrastructure/bin/app.ts`:
+### Development Environment
 
-```typescript
-// Update these values with your GitHub information
-githubOwner: 'your-github-username',
-githubRepo: 'southwest-chief-railcam-tracker',
-githubBranch: 'main'
+In addition to the production environment, this project includes a separate development environment that can be deployed alongside production.
+
+#### Deploying the Development Environment
+
+```bash
+# Navigate to the infrastructure directory
+cd infrastructure
+
+# Make the script executable (if not already)
+chmod +x deploy-dev.sh
+
+# Deploy the development environment
+./deploy-dev.sh
 ```
 
-4. Review the CDK configuration in `infrastructure/cdk.json` to ensure it matches your requirements.
+This will create a separate stack named `TrainTracker-Dev` with its own:
+- VPC (with public subnets only to save costs)
+- ECS Fargate cluster (with reduced capacity)
+- Application Load Balancer
+- ECR Repository
+- CI/CD Pipeline (configured to use the 'develop' branch)
 
-5. Deploy the infrastructure:
+#### Deploying to the Development Environment
+
+After the development infrastructure is deployed, you can build and push the Docker image:
+
+```bash
+# From the project root directory
+chmod +x push-image-dev.sh
+./push-image-dev.sh
+```
+
+#### Accessing the Development Environment
+
+Once deployed, you can access the development application using:
+
+```bash
+aws cloudformation describe-stacks --stack-name TrainTracker-Dev --query "Stacks[0].Outputs[?OutputKey=='URL'].OutputValue" --output text
+```
+
+### Cleaning Up
+
+To avoid incurring charges, you can delete the stacks when they're no longer needed using the cleanup script:
 
 ```bash
 cd infrastructure
-npm run deploy
+chmod +x cleanup.sh
+./cleanup.sh
 ```
 
-The deployment will create the following AWS resources:
-- VPC with public and private subnets
-- DynamoDB tables for train status data
-- S3 buckets for static assets
-- ECS Fargate clusters for running the application
-- CI/CD pipeline with CodePipeline and CodeBuild
+The script will prompt you to choose which environment to clean up:
+1. Development only
+2. Production only
+3. Both environments
 
-### CI/CD Pipeline
-
-The CI/CD pipeline is automatically created as part of the infrastructure deployment. It includes the following stages:
-
-1. **Source**: Pulls the code from the GitHub repository
-2. **Build and Test**: Builds the application and runs unit tests
-3. **Deploy to Dev**: Deploys the application to the development environment
-4. **Integration Tests**: Runs integration tests against the development environment
-5. **Deploy to Production**: Deploys the application to the production environment if all tests pass
-
-### Manual Deployment
-
-If you need to manually deploy the application:
-
-1. Build and push the Docker image:
-
-```bash
-# Get the ECR repository URI
-export ECR_REPOSITORY_URI=$(aws ecr describe-repositories --repository-names traintracker-dev --query 'repositories[0].repositoryUri' --output text)
-
-# Login to ECR
-aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-
-# Build and push the image
-docker build -t $ECR_REPOSITORY_URI:latest .
-docker push $ECR_REPOSITORY_URI:latest
-```
-
-2. Update the ECS service:
-
-```bash
-# For development environment
-aws ecs update-service --cluster SWChiefTracker-Dev-ECS --service SWChiefTracker-Dev-Service --force-new-deployment
-
-# For production environment
-aws ecs update-service --cluster SWChiefTracker-Prod-ECS --service SWChiefTracker-Prod-Service --force-new-deployment
-```
-
-### Environment Variables
-
-The application uses the following environment variables:
-
-- `NODE_ENV`: Set to `development` or `production`
-- `TRAIN_STATUS_TABLE`: DynamoDB table name for train status data
-- `CURRENT_STATUS_TABLE`: DynamoDB table name for current status data
-- `ASSETS_BUCKET`: S3 bucket name for static assets
-- `AWS_REGION`: AWS region for the services
-
-These variables are automatically set by the ECS task definition.
-
-### Monitoring and Logs
-
-- CloudWatch Logs: All application logs are sent to CloudWatch Logs
-- CloudWatch Alarms: Alarms are set up for CPU and memory usage
-- CloudWatch Metrics: Custom metrics are available for API endpoints
-
-### Cleanup
-
-To remove all AWS resources created by this project:
+Alternatively, you can manually delete the stacks:
 
 ```bash
 cd infrastructure
-npm run cdk destroy -- --all
+# Delete development stacks
+cdk destroy TrainTracker-Dev-Pipeline
+cdk destroy TrainTracker-Dev
+
+# Delete production stacks
+cdk destroy TrainTracker-Pipeline
+cdk destroy TrainTracker-App
 ```
 
-## Local Development
+## Development Guide
+
+### Local Development
 
 1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-```bash
-npm install
-```
+2. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-2. Start the development server:
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-```bash
-npm run dev
-```
+### Testing
 
-3. Run tests:
+Run tests with:
 
 ```bash
 npm test
 ```
 
-4. Run integration tests:
+### Building for Production
 
 ```bash
-npm run test:integration
+npm run build
 ```
 
-## License
+### Docker Development
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+You can also run the application in Docker locally:
+
+```bash
+docker build -t traintracker .
+docker run -p 3000:3000 traintracker

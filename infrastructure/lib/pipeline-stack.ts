@@ -3,209 +3,120 @@ import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
 import * as codepipeline_actions from 'aws-cdk-lib/aws-codepipeline-actions';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
-import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as ecsPatterns from 'aws-cdk-lib/aws-ecs-patterns';
 import { Construct } from 'constructs';
 
-interface PipelineStackProps extends cdk.StackProps {
-  repository: ecr.Repository;
-  devCluster: ecs.Cluster;
-  prodCluster: ecs.Cluster;
-  devService: ecs.FargateService;
-  prodService: ecs.FargateService;
-  githubOwner: string;
-  githubRepo: string;
-  githubBranch: string;
+export interface PipelineStackProps extends cdk.StackProps {
+  readonly ecrRepository: ecr.Repository;
+  readonly service: ecsPatterns.ApplicationLoadBalancedFargateService;
+  readonly environmentName: string;
 }
 
 export class PipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: PipelineStackProps) {
     super(scope, id, props);
-    
-    // Create the pipeline
-    const pipeline = new codepipeline.Pipeline(this, 'SWChiefTrackerPipeline', {
-      pipelineName: 'SWChiefTracker-Pipeline'
-    });
-    
-    // Add source stage
+
+    // Define the artifact for source code
     const sourceOutput = new codepipeline.Artifact();
-    const sourceAction = new codepipeline_actions.GitHubSourceAction({
-      actionName: 'GitHub',
-      owner: props.githubOwner,
-      repo: props.githubRepo,
-      branch: props.githubBranch,
-      oauthToken: cdk.SecretValue.secretsManager('github-token'),
-      output: sourceOutput
-    });
-    
-    pipeline.addStage({
-      stageName: 'Source',
-      actions: [sourceAction]
-    });
-    
-    // Add build and test stage
     const buildOutput = new codepipeline.Artifact();
+
+    // CodeBuild project
     const buildProject = new codebuild.PipelineProject(this, 'BuildProject', {
-      buildSpec: codebuild.BuildSpec.fromObject({
-        version: '0.2',
-        phases: {
-          install: {
-            commands: [
-              'npm ci'
-            ]
-          },
-          build: {
-            commands: [
-              'npm run build',
-              'npm test',
-              'echo Logging in to Amazon ECR...',
-              'aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com',
-              'echo Building the Docker image...',
-              'docker build -t $ECR_REPOSITORY_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION .',
-              'docker tag $ECR_REPOSITORY_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION $ECR_REPOSITORY_URI:latest',
-              'echo Pushing the Docker image...',
-              'docker push $ECR_REPOSITORY_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION',
-              'docker push $ECR_REPOSITORY_URI:latest'
-            ]
-          }
-        },
-        artifacts: {
-          files: [
-            'appspec.yml',
-            'taskdef.json',
-            'imagedefinitions.json'
-          ]
-        }
-      }),
       environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
-        privileged: true
+        buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2_3,
+        privileged: true, // Required for Docker commands
       },
       environmentVariables: {
-        AWS_ACCOUNT_ID: { value: cdk.Stack.of(this).account },
-        AWS_DEFAULT_REGION: { value: cdk.Stack.of(this).region },
-        ECR_REPOSITORY_URI: { value: props.repository.repositoryUri }
-      }
+        AWS_ACCOUNT_ID: {
+          value: this.account,
+        },
+        AWS_DEFAULT_REGION: {
+          value: this.region,
+        },
+        REPOSITORY_URI: {
+          value: props.ecrRepository.repositoryUri,
+        },
+        TASK_DEFINITION_ARN: {
+          value: props.service.taskDefinition.taskDefinitionArn,
+        },
+        EXECUTION_ROLE_ARN: {
+          value: props.service.taskDefinition.executionRole?.roleArn || '',
+        },
+        CLOUDWATCH_LOG_GROUP: {
+          value: props.service.taskDefinition.defaultContainer?.logDriverConfig?.options?.['awslogs-group'] || '',
+        },
+        CONTAINER_NAME: {
+          value: props.service.taskDefinition.defaultContainer?.containerName || 'web',
+        },
+      },
+      buildSpec: codebuild.BuildSpec.fromSourceFilename('buildspec.yml'),
     });
-    
-    const buildAction = new codepipeline_actions.CodeBuildAction({
-      actionName: 'BuildAndTest',
-      project: buildProject,
-      input: sourceOutput,
-      outputs: [buildOutput]
+
+    // Grant permissions to the CodeBuild project
+    props.ecrRepository.grantPullPush(buildProject);
+    buildProject.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          'ecs:DescribeTaskDefinition',
+          'ecs:RegisterTaskDefinition',
+          'ecs:UpdateService',
+        ],
+        resources: ['*'],
+      })
+    );
+
+    // Create the pipeline
+    const pipeline = new codepipeline.Pipeline(this, 'Pipeline', {
+      pipelineName: `${props.environmentName}-Pipeline`,
+      crossAccountKeys: false,
     });
-    
+
+    // Add source stage
     pipeline.addStage({
-      stageName: 'BuildAndTest',
-      actions: [buildAction]
+      stageName: 'Source',
+      actions: [
+        new codepipeline_actions.CodeStarConnectionsSourceAction({
+          actionName: 'GitHub',
+          owner: 'your-github-username', // Replace with your GitHub username
+          repo: 'traintracker', // Replace with your repository name
+          branch: 'main',
+          output: sourceOutput,
+          connectionArn: 'arn:aws:codestar-connections:us-east-1:237069437847:connection/your-connection-id', // Replace with your connection ARN
+        }),
+      ],
     });
-    
-    // Add deploy to dev stage
-    const deployToDevProject = new codebuild.PipelineProject(this, 'DeployToDevProject', {
-      buildSpec: codebuild.BuildSpec.fromObject({
-        version: '0.2',
-        phases: {
-          build: {
-            commands: [
-              'echo Deploying to development environment...',
-              'aws ecs update-service --cluster $DEV_CLUSTER --service $DEV_SERVICE --force-new-deployment'
-            ]
-          }
-        }
-      }),
-      environmentVariables: {
-        DEV_CLUSTER: { value: props.devCluster.clusterName },
-        DEV_SERVICE: { value: props.devService.serviceName }
-      }
-    });
-    
-    // Grant permissions to update ECS service
-    deployToDevProject.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['ecs:UpdateService'],
-      resources: [props.devService.serviceArn]
-    }));
-    
-    const deployToDevAction = new codepipeline_actions.CodeBuildAction({
-      actionName: 'DeployToDev',
-      project: deployToDevProject,
-      input: buildOutput
-    });
-    
+
+    // Add build stage
     pipeline.addStage({
-      stageName: 'DeployToDev',
-      actions: [deployToDevAction]
+      stageName: 'Build',
+      actions: [
+        new codepipeline_actions.CodeBuildAction({
+          actionName: 'BuildAndPush',
+          project: buildProject,
+          input: sourceOutput,
+          outputs: [buildOutput],
+        }),
+      ],
     });
-    
-    // Add integration tests stage
-    const integrationTestProject = new codebuild.PipelineProject(this, 'IntegrationTestProject', {
-      buildSpec: codebuild.BuildSpec.fromObject({
-        version: '0.2',
-        phases: {
-          install: {
-            commands: [
-              'npm ci'
-            ]
-          },
-          build: {
-            commands: [
-              'echo Running integration tests...',
-              'npm run test:integration'
-            ]
-          }
-        }
-      }),
-      environmentVariables: {
-        API_URL: { 
-          value: 'http://localhost:3000' // Will be updated with actual DNS name after deployment
-        }
-      }
-    });
-    
-    const integrationTestAction = new codepipeline_actions.CodeBuildAction({
-      actionName: 'IntegrationTests',
-      project: integrationTestProject,
-      input: sourceOutput
-    });
-    
+
+    // Add deploy stage
     pipeline.addStage({
-      stageName: 'IntegrationTests',
-      actions: [integrationTestAction]
+      stageName: 'Deploy',
+      actions: [
+        new codepipeline_actions.EcsDeployAction({
+          actionName: 'DeployToECS',
+          service: props.service.service,
+          imageFile: buildOutput.atPath('imageDefinitions.json'),
+        }),
+      ],
     });
-    
-    // Add deploy to production stage
-    const deployToProdProject = new codebuild.PipelineProject(this, 'DeployToProdProject', {
-      buildSpec: codebuild.BuildSpec.fromObject({
-        version: '0.2',
-        phases: {
-          build: {
-            commands: [
-              'echo Deploying to production environment...',
-              'aws ecs update-service --cluster $PROD_CLUSTER --service $PROD_SERVICE --force-new-deployment'
-            ]
-          }
-        }
-      }),
-      environmentVariables: {
-        PROD_CLUSTER: { value: props.prodCluster.clusterName },
-        PROD_SERVICE: { value: props.prodService.serviceName }
-      }
-    });
-    
-    // Grant permissions to update ECS service
-    deployToProdProject.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['ecs:UpdateService'],
-      resources: [props.prodService.serviceArn]
-    }));
-    
-    const deployToProdAction = new codepipeline_actions.CodeBuildAction({
-      actionName: 'DeployToProd',
-      project: deployToProdProject,
-      input: buildOutput
-    });
-    
-    pipeline.addStage({
-      stageName: 'DeployToProd',
-      actions: [deployToProdAction]
+
+    // Output the pipeline URL
+    new cdk.CfnOutput(this, 'PipelineURL', {
+      value: `https://console.aws.amazon.com/codepipeline/home?region=${this.region}#/view/${pipeline.pipelineName}`,
+      description: 'URL to the CodePipeline console',
     });
   }
 }

@@ -1,39 +1,30 @@
-FROM node:18-alpine AS builder
+# Use Node.js 18 as the base image
+FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy package.json and package-lock.json
 COPY package*.json ./
+
+# Install dependencies
 RUN npm ci
 
-# Copy the rest of the application code
+# Copy the rest of the application
 COPY . .
 
-# Build the Next.js application
+# Build the application
 RUN npm run build
 
-# Production image
-FROM node:18-alpine AS runner
-
-WORKDIR /app
-
-# Set environment to production
-ENV NODE_ENV=production
-
-# Copy built application from builder stage
-COPY --from=builder /app/next.config.ts ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-
-# Create a non-root user and switch to it
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-USER nextjs
-
-# Expose the port the app will run on
+# Expose the port the app runs on
 EXPOSE 3000
 
-# Start the application
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Create a healthcheck endpoint
+RUN echo 'const http = require("http"); const server = http.createServer((req, res) => { res.writeHead(200); res.end("OK"); }); server.listen(3000);' > healthcheck.js
+
+# Command to run the application
 CMD ["npm", "start"]

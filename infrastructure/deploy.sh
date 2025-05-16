@@ -42,6 +42,8 @@ done
 
 # Build the TypeScript code
 echo "Building TypeScript code..."
+echo "Cleaning previous build artifacts..."
+rm -rf dist
 npm run build
 
 # Determine which stacks to deploy

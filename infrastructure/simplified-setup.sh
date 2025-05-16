@@ -3,7 +3,7 @@
 # Exit on error
 set -e
 
-echo "Setting up TrainTracker infrastructure..."
+echo "Setting up simplified TrainTracker infrastructure..."
 
 # Install dependencies
 npm install
@@ -41,12 +41,10 @@ if aws cloudformation describe-stacks --stack-name CDKToolkit 2>&1 | grep -q "St
     echo "  - cloudformation:*"
     echo "  - iam:*"
     echo "  - s3:*"
-    echo "  - ecr:*"
-    echo "  - ecs:*"
-    echo "  - dynamodb:*"
-    echo "  - logs:*"
-    echo "  - elasticloadbalancing:*"
+    echo "  - elasticbeanstalk:*"
     echo "  - ec2:*"
+    echo "  - codepipeline:*"
+    echo "  - codebuild:*"
     echo "  - ssm:GetParameter"
     echo "  - ssm:PutParameter"
     echo "You can attach the 'AdministratorAccess' policy for testing purposes."
@@ -68,16 +66,19 @@ cdk bootstrap "aws://$AWS_ACCOUNT_ID/$AWS_REGION" || {
     exit 1
 }
 
+# No GitHub token needed for this simplified setup
+
 # Update GitHub repository information
-echo "Please update the GitHub repository information in bin/app.ts with your own values:"
+echo "Please update the GitHub repository information in bin/simplified-app.ts with your own values:"
 echo "  - githubOwner: 'your-github-username'"
 echo "  - githubRepo: 'traintracker'"
 echo "  - githubBranch: 'main'"
 
-echo "Setup complete! You can now deploy the infrastructure with 'npm run deploy'"
 echo ""
-echo "Before deployment, make sure to:"
-echo "1. Create a GitHub personal access token and store it in AWS Secrets Manager:"
-echo "   aws secretsmanager create-secret --name github-token --secret-string YOUR_GITHUB_TOKEN"
-echo "2. Update the GitHub repository information in bin/app.ts"
-echo "3. Review the infrastructure stacks in bin/app.ts"
+echo "After deployment, you'll need to:"
+echo "1. Create a Dockerfile in your project root if it doesn't exist already"
+echo "2. Zip your project: zip -r source.zip . -x \"node_modules/*\" -x \".git/*\""
+echo "3. Upload to S3: aws s3 cp source.zip s3://YOUR_SOURCE_BUCKET_NAME/"
+echo "4. Start the pipeline: aws codepipeline start-pipeline-execution --name TrainTracker-Pipeline"
+
+echo "Setup complete! You can now deploy the infrastructure with './simplified-deploy.sh'"

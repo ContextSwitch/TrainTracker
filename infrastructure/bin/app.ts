@@ -66,8 +66,8 @@ new PipelineStack(app, 'SWChiefTracker-Pipeline', {
   devCluster: devEcsStack.cluster,
   prodCluster: prodEcsStack.cluster,
   repository: devEcsStack.repository,
-  githubOwner: 'your-github-username',
-  githubRepo: 'southwest-chief-railcam-tracker',
+  githubOwner: 'ContextSwitch',
+  githubRepo: 'TrainTracker',
   githubBranch: 'main'
 });
 
