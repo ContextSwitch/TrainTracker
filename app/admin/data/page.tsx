@@ -234,7 +234,7 @@ export default function DataManagementPage() {
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
             </div>
           ) : (
-            <div className="max-h-[500px] overflow-auto rounded-md bg-gray-50 p-4 dark:bg-gray-900">
+            <div className="max-h-[500px] overflow-auto rounded-md bg-gray-50 p-4 dark:clr-surface-a0">
               <pre className="text-sm text-gray-800 dark:text-gray-200">
                 {activeTab === 'train' 
                   ? trainStatusData ? JSON.stringify(trainStatusData, null, 2) : 'No data available'

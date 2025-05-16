@@ -6,8 +6,8 @@
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #121212;
+  --foreground: #282828;
 }
 
 body {
@@ -15,4 +15,90 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+/** https://colorffy.com/dark-theme-generator?colors=FFEF5E-121212 */
+/** Base colors */
+.clr-dark-a0 {
+  color: #000000;
+}
+
+.clr-light-a0 {
+  color: #ffffff;
+}
+
+/** Theme primary colors */
+.clr-primary-a0 {
+  color: #ffef5e;
+}
+
+.clr-primary-a10 {
+  color: #fff172;
+}
+
+.clr-primary-a20 {
+  color: #fff285;
+}
+
+.clr-primary-a30 {
+  color: #fff497;
+}
+
+.clr-primary-a40 {
+  color: #fff6a9;
+}
+
+.clr-primary-a50 {
+  color: #fff8bb;
+}
+
+/** Theme surface colors */
+.clr-surface-a0 {
+  color: #121212;
+}
+
+.clr-primary-a0 {
+  color: #282828;
+}
+
+.clr-surface-a20 {
+  color: #3f3f3f;
+}
+
+.clr-surface-a30 {
+  color: #575757;
+}
+
+.clr-surface-a40 {
+  color: #717171;
+}
+
+.clr-surface-a50 {
+  color: #8b8b8b;
+}
+
+/** Theme tonal surface colors */
+.clr-surface-tonal-a0 {
+  color: #26241a;
+}
+
+.clr-surface-tonal-a10 {
+  color: #3b382f;
+}
+
+.clr-surface-tonal-a20 {
+  color: #504e45;
+}
+
+.clr-surface-tonal-a30 {
+  color: #67655d;
+}
+
+.clr-surface-tonal-a40 {
+  color: #7e7d76;
+}
+
+.clr-surface-tonal-a50 {
+  color: #979590;
 }
