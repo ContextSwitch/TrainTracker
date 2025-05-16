@@ -67,7 +67,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
   const statusMessage = generateStatusMessage(trainStatus, updatedApproaching);
 
   // Use neutral background color regardless of approaching status
-  const statusColor = 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-800';
+  const statusColor = 'bg-gray-50 border-gray-200 dark:clr-surface-a0 dark:border-gray-800';
 
   return (
     <div className={`p-4 border rounded-lg ${statusColor}`}>

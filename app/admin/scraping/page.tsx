@@ -114,7 +114,7 @@ export default function ScrapingControlsPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+              <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:clr-surface-a0">
                 <tr>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                     {new Date().toLocaleString()}

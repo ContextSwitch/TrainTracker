@@ -66,7 +66,7 @@ const YouTubeUrlEditor: React.FC<YouTubeUrlEditorProps> = ({ stations, onSave })
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+              <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:clr-surface-a0">
                 {editedStations.map((station, index) => (
                   <tr key={station.name}>
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">

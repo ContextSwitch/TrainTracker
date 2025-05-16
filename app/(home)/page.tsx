@@ -181,7 +181,7 @@ export default function Home() {
   
 
   return (
-    <div className="min-h-screen p-4 md:p-8 dark:bg-gray-900">
+    <div className="min-h-screen p-4 md:p-8 dark:clr-surface-a0">
       <header className="mb-8">
         <div className="flex justify-between items-center">
           <div className="w-10"></div> {/* Spacer to balance the ThemeToggle */}

@@ -72,7 +72,7 @@ export default function MonitoringPage() {
       case 'error':
         return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+        return 'bg-gray-100 text-gray-800 dark:clr-surface-a0/30 dark:text-gray-400';
     }
   };
 
@@ -231,7 +231,7 @@ export default function MonitoringPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+              <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:clr-surface-a0">
                 {filteredLogs.map((log, index) => (
                   <tr key={index}>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
