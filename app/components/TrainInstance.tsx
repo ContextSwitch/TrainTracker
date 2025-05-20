@@ -44,6 +44,10 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
     actualMinutesAway +=1440;
   }
 
+  if(actualMinutesAway < 0){
+   // trainStatus.status -= actualMinutesAway
+  }
+
   // Format the time until arrival
   let timeUntilArrival;
   if (actualMinutesAway > 60) {
@@ -123,11 +127,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
         </div>
       </div>
       
-      {trainStatus.currentLocation && (
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Current location: {trainStatus.currentLocation}
-        </p>
-      )}
+
       
       {trainStatus.status && trainStatus.status !== 'On time' && (
         <p className="mt-1 text-xs text-red-500 dark:text-red-400">
