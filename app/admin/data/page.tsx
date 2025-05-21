@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { TrainStatus, CurrentStatus } from '../../types';
 
 export default function DataManagementPage() {
   const [clearingData, setClearingData] = useState(false);
   const [clearSuccess, setClearSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'train' | 'current'>('train');
-  const [trainStatusData, setTrainStatusData] = useState<any>(null);
-  const [currentStatusData, setCurrentStatusData] = useState<any>(null);
+  const [trainStatusData, setTrainStatusData] = useState<TrainStatus[] | null>(null);
+  const [currentStatusData, setCurrentStatusData] = useState<CurrentStatus | null>(null);
   const [loadingData, setLoadingData] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
 

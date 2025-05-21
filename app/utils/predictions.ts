@@ -108,7 +108,7 @@ function processSingleTrainStatus(trainStatus: Partial<TrainStatus> & { directio
       const now = new Date();
       const eta = new Date(trainStatus.estimatedArrival);
       
-      let minutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
+      const minutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
       
       return {
         station,
@@ -150,8 +150,8 @@ function processSingleTrainStatus(trainStatus: Partial<TrainStatus> & { directio
   for (let i = currentIndex; i < route.length; i++) {
     const station = getStationByName(route[i]);
     if (station) {
-      // Get the time zone offset for the station
-      const timeZoneOffset = getStationTimeZoneOffset(route[i]);
+      // Get the time zone offset for the station (not currently used)
+      // const timeZoneOffset = getStationTimeZoneOffset(route[i]);
       
       // For now, we'll estimate that each station is about 2-3 hours apart
       // This is a rough estimate and should be replaced with actual timetable data
@@ -282,8 +282,8 @@ export function generateStatusMessage(
     while(actualMinutesAway < -900 && actualMinutesAway < 0){
       actualMinutesAway +=1440;
     }
-    // Include instance ID if available
-    const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
+    // Instance ID info (not currently displayed)
+    // const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
     
     // Include timezone if available
     const timezoneInfo = trainStatus.timezone ? ` ${trainStatus.timezone}` : '';
@@ -298,8 +298,8 @@ export function generateStatusMessage(
       return `The Chief is approaching ${approaching.station.name} and will arrive in approximately ${Math.max(0, actualMinutesAway)} minutes${timezoneInfo}.`;
     }
   } else if (trainStatus.currentLocation && trainStatus.nextStation) {
-    // Include instance ID if available
-    const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
+    // Instance ID info (not currently displayed)
+    // const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
     
     // Include timezone if available
     const timezoneInfo = trainStatus.timezone ? ` ${trainStatus.timezone}` : '';
@@ -321,8 +321,8 @@ export function generateStatusMessage(
     
     return `The Chief is currently at ${trainStatus.currentLocation} and heading to ${trainStatus.nextStation}${departedInfo}${delayInfo}${timezoneInfo}.`;
   } else {
-    // Include instance ID if available
-    const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
+    // Instance ID info (not currently displayed)
+    // const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
     
     return `The Chief is enroute to the following stations`;
   }

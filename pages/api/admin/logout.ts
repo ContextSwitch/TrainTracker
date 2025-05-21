@@ -1,6 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { clearAuthFromLocalStorage } from '../../../app/utils/auth-client';
-import cookie from 'cookie';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Set cache control headers to prevent caching
@@ -16,23 +14,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     console.log('Logging out user');
     
-    // Clear the admin token cookie
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax' as 'lax',
-      path: '/',
-      maxAge: 0, // Expire immediately
-    };
+    // Set production flag
+    const isProduction = process.env.NODE_ENV === 'production';
     
-    // Ensure the cookie is properly cleared by setting multiple headers
-    res.setHeader(
-      'Set-Cookie', [
-        cookie.serialize('admin_token', '', cookieOptions),
-        // Add a second cookie with a different path as a fallback
-        cookie.serialize('admin_token', '', { ...cookieOptions, path: '/admin' })
-      ]
-    );
+    // Clear the admin token cookie with multiple paths to ensure it's properly cleared
+    const clearCookieRoot = `admin_token=; Path=/; Max-Age=0; HttpOnly${isProduction ? '; Secure' : ''}; SameSite=Lax`;
+    const clearCookieAdmin = `admin_token=; Path=/admin; Max-Age=0; HttpOnly${isProduction ? '; Secure' : ''}; SameSite=Lax`;
+    
+    // Set both cookies
+    res.setHeader('Set-Cookie', [clearCookieRoot, clearCookieAdmin]);
+    
+    console.log('Admin token cookies cleared successfully');
     
     return res.status(200).json({ 
       success: true,

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { getAuthFromLocalStorage } from '../../utils/auth-client';
 
 /**
@@ -11,7 +10,6 @@ import { getAuthFromLocalStorage } from '../../utils/auth-client';
 const AdminAuthCheck: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     // Check if we're coming from a successful login redirect with auth param

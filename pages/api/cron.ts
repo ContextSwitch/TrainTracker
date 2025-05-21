@@ -12,7 +12,12 @@ type CronResponse = {
   message: string;
   lastRun?: string;
 };
-console.log('in cron super')
+
+// Initialize logging
+const initLog = () => {
+  console.log('Cron API initialized');
+};
+initLog();
 
 // Track the last time the cron job was run
 let lastRun: Date | null = null;
@@ -36,7 +41,7 @@ export default async function handler(
   // Check if it's been at least 15 minutes since the last run
   // This prevents excessive scraping if the cron job is called too frequently
   const now = new Date();
-  if (lastRun && (now.getTime() - lastRun.getTime()) < 0 * 60 * 1000) {
+  if (lastRun && (now.getTime() - lastRun.getTime()) < 15 * 60 * 1000) {
     console.log('skipping')
     return res.status(200).json({
       success: true,
@@ -96,7 +101,7 @@ export default async function handler(
 
 function saveTrains(trainStatus: TrainStatus[]){
   // Save each train status
-  for(let status of trainStatus){
+  for(const status of trainStatus){
     saveTrainStatus(status);
   }
 }

@@ -29,7 +29,7 @@ export default function About() {
             live railcam feeds when the train is approaching one of the many railcams along the route.
           </p>
           <p className="mb-4 dark:text-gray-300">
-            The Southwest Chief is one of Amtrak's iconic long-distance routes, covering 2,265 miles through Illinois, Iowa, Missouri, 
+            The Southwest Chief is one of Amtrak&apos;s iconic long-distance routes, covering 2,265 miles through Illinois, Iowa, Missouri, 
             Kansas, Colorado, New Mexico, Arizona, and California. The journey takes approximately 43 hours to complete.
           </p>
         </div>
@@ -52,7 +52,7 @@ export default function About() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-semibold mb-4 dark:text-white">Features</h2>
           <ul className="list-disc pl-6 dark:text-gray-300">
-            <li className="mb-2">Real-time tracking of the Southwest Chief's location and status</li>
+            <li className="mb-2">Real-time tracking of the Southwest Chief&apos;s location and status</li>
             <li className="mb-2">Live railcam feeds from stations along the route</li>
             <li className="mb-2">Delay information showing if the train is running late</li>
             <li className="mb-2">Dark mode support for comfortable viewing at night</li>
@@ -86,9 +86,9 @@ export default function About() {
           Times and Locations are for entertainment purposes only and are not guaranteed to be correct.
         </p>
         <div className="mt-4 flex justify-center space-x-4">
-          <a href="/" className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+          <Link href="/" className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
             Home
-          </a>
+          </Link>
         </div>
       </footer>
     </div>

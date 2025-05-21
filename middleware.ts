@@ -6,7 +6,9 @@ export function middleware(request: NextRequest) {
   // Debug request info
   console.log('Middleware processing path:', request.nextUrl.pathname);
   
-  // Redirect to HTTPS in production
+  // HTTPS redirect disabled for AWS deployment
+  // Uncomment this block when proper SSL certificate is configured
+  /*
   if (
     process.env.NODE_ENV === 'production' &&
     request.headers.get('x-forwarded-proto') !== 'https'
@@ -16,6 +18,7 @@ export function middleware(request: NextRequest) {
       301
     );
   }
+  */
 
   // Skip auth check for login page and non-admin API routes
   if (

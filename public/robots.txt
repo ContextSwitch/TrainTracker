@@ -1,6 +1,6 @@
-# Allow all web crawlers
+# Disallow all web crawlers
 User-agent: *
-Allow: /
+Disallow: /
 
 # Sitemap location
 Sitemap: https://southwestchieftracker.com/sitemap.xml

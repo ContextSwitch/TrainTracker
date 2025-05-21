@@ -33,17 +33,11 @@ export default async function handler(
     // Get the train IDs to scrape (default to both)
     const trainIds = req.body.trainIds || ['3', '4'];
     
-    // Use mock data for development/testing if specified
-    const useMockData = req.body.useMockData === true;
-    
     // Scrape data for each train
     for (const trainId of trainIds) {
-      let trainStatus;
-      
-
-        // Scrape real data
-        const url = appConfig.trainUrls[trainId as '3' | '4'];
-        trainStatus = await scrapeTrainStatus(url, trainId);
+      // Scrape real data
+      const url = appConfig.trainUrls[trainId as '3' | '4'];
+      const trainStatus = await scrapeTrainStatus(url, trainId);
       
       
       // Save the train statuses if we got data

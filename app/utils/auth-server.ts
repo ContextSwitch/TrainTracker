@@ -4,10 +4,10 @@ import { AdminUser, verifyToken } from './auth-client';
 /**
  * Get the current admin user from cookies (for server components)
  */
-export function getAdminUserFromServerComponent(): AdminUser | null {
+export async function getAdminUserFromServerComponent(): Promise<AdminUser | null> {
   try {
     console.log('Getting admin user from server component');
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('admin_token')?.value;
     
     if (!token) {

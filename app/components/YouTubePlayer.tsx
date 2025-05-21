@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 
 interface YouTubePlayerProps {
   videoUrl: string;
-  width?: string;
-  height?: string;
   autoplay?: boolean;
 }
 
@@ -14,14 +12,12 @@ interface YouTubePlayerProps {
  */
 const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
   videoUrl,
-  width = '100%',
-  height = '100%',
   autoplay = true
 }) => {
   const playerRef = useRef<HTMLIFrameElement>(null);
 
   // Function to extract video ID from various YouTube URL formats
-  const getYoutubeEmbedUrl = (url: string): string => {
+  const getYoutubeEmbedUrl = useCallback((url: string): string => {
     try {
       if (url.includes('youtube.com/watch')) {
         // Extract video ID from watch URL
@@ -49,7 +45,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
       console.error('Error parsing YouTube URL:', error);
       return url;
     }
-  };
+  }, [autoplay]);
 
   // Get the embed URL
   const embedUrl = getYoutubeEmbedUrl(videoUrl);
@@ -59,7 +55,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
     if (playerRef.current) {
       playerRef.current.src = getYoutubeEmbedUrl(videoUrl);
     }
-  }, [videoUrl]);
+  }, [videoUrl, getYoutubeEmbedUrl]);
 
   return (
     <div className="relative w-full" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>

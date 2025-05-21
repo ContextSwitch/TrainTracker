@@ -31,6 +31,14 @@
         {
           "name": "ASSETS_BUCKET",
           "value": "<ASSETS_BUCKET>"
+        },
+        {
+          "name": "JWT_SECRET",
+          "value": "traintracker-admin-secret"
+        },
+        {
+          "name": "ADMIN_PASSWORD",
+          "value": "WhereDidTheSunGo"
         }
       ],
       "logConfiguration": {

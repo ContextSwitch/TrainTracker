@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { TrainStatus } from '../types';
-import { getStationByName } from '../config';
+// import { getStationByName } from '../config';
 import { getStationTimeZoneOffset } from './predictions';
 
 // Define the ordered list of stations for each train route
@@ -176,7 +176,6 @@ export async function scrapeTrainFromDixieland(
     let nextStationCode = '';
     let nextStationName = '';
     let scheduledArrivalTime = '';
-    let actualArrivalTime = '';
     let delayText = '';
     let departed = false;
     
@@ -543,8 +542,9 @@ export async function scrapeTrainStatus(trainId: string): Promise<TrainStatus[]>
     console.error(`No train instances found for train #${trainId}, checking existing data`);
     
     try {
-      const fs = require('fs');
-      const path = require('path');
+      // Use dynamic imports with type annotations
+      const fs = await import('fs');
+      const path = await import('path');
       
       // Path to the train status file
       const trainStatusFile = path.join(process.cwd(), 'data', 'train_status.json');
@@ -557,7 +557,7 @@ export async function scrapeTrainStatus(trainId: string): Promise<TrainStatus[]>
         if (trainData[trainId] && Array.isArray(trainData[trainId]) && trainData[trainId].length > 0) {
           console.log(`Using existing data for train #${trainId} from train_status.json`);
           // Filter out empty objects
-          const filteredData = trainData[trainId].filter((status: any) => status.trainId === trainId);
+          const filteredData = trainData[trainId].filter((status: TrainStatus) => status.trainId === trainId);
           if (filteredData.length > 0) {
             return filteredData;
           }
