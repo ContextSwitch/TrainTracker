@@ -1,25 +1,13 @@
 {
-  "name": "southwest-chief-railcam-tracker-infrastructure",
+  "name": "traintracker-infrastructure",
   "version": "0.1.0",
-  "description": "AWS CDK Infrastructure for Southwest Chief Railcam Tracker",
-  "main": "bin/app.js",
+  "private": true,
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
     "cdk": "cdk",
-    "deploy": "cdk deploy --all",
-    "deploy:dev": "cdk deploy SWChiefTracker-Network SWChiefTracker-Dev-DB SWChiefTracker-Dev-Storage SWChiefTracker-Dev-ECS",
-    "deploy:prod": "cdk deploy SWChiefTracker-Network SWChiefTracker-Prod-DB SWChiefTracker-Prod-Storage SWChiefTracker-Prod-ECS",
-    "deploy:pipeline": "cdk deploy SWChiefTracker-Pipeline",
-    "deploy:simplified": "cdk deploy --app \"node dist/bin/simplified-app.js\" --all",
-    "destroy": "cdk destroy --all",
-    "destroy:dev": "cdk destroy SWChiefTracker-Dev-ECS SWChiefTracker-Dev-Storage SWChiefTracker-Dev-DB",
-    "destroy:prod": "cdk destroy SWChiefTracker-Prod-ECS SWChiefTracker-Prod-Storage SWChiefTracker-Prod-DB",
-    "destroy:simplified": "cdk destroy --app \"node dist/bin/simplified-app.js\" --all",
-    "synth": "cdk synth",
-    "synth:simplified": "cdk synth --app \"node dist/bin/simplified-app.js\"",
-    "setup": "./setup.sh",
-    "diff": "cdk diff"
+    "deploy": "cdk deploy",
+    "destroy": "cdk destroy"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.80.0",
@@ -27,7 +15,7 @@
     "source-map-support": "^0.5.21"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
+    "@types/node": "^20.1.0",
     "aws-cdk": "^2.80.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
