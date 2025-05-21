@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
-import { CurrentStatus, RailcamStation, TrainStatus } from '../../app/types';
-import { appConfig, getStationByName, getYoutubeEmbedUrl } from '../../app/config';
+import { CurrentStatus, TrainStatus } from '../../app/types';
+import { getStationByName, getYoutubeEmbedUrl } from '../../app/config';
 
 /**
  * API route to update the current viewing selection

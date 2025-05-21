@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { TrainApproaching } from '../types';
 import { appConfig } from '../config';
 import { 
-  areNotificationsSupported, 
   requestNotificationPermission,
   showTrainApproachingNotification,
   shouldShowNotification

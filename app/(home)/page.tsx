@@ -16,8 +16,8 @@ export default function Home() {
     lastUpdated: new Date().toISOString()
   });
   
-  // State to track which train was last selected
-  const [lastSelectedTrain, setLastSelectedTrain] = useState<string | null>(null);
+  // State to track which train was last selected (used for UI state management)
+  const [, setLastSelectedTrain] = useState<string | null>(null);
   
   // State to store the train status
   const [train3Status, setTrain3Status] = useState<TrainStatus | null>(null);

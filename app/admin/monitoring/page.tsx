@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 interface LogEntry {
   timestamp: string;
@@ -11,7 +11,7 @@ interface LogEntry {
 
 export default function MonitoringPage() {
   // Mock log data - in a real implementation, this would be fetched from the server
-  const [logs, setLogs] = useState<LogEntry[]>([
+  const [logs] = useState<LogEntry[]>([
     {
       timestamp: new Date().toISOString(),
       level: 'info',

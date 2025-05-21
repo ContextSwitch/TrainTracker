@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { TrainStatus as TrainStatusType, TrainApproaching } from '../types';
-import { generateStatusMessage, findNextRailcamStation } from '../utils/predictions';
+import { generateStatusMessage } from '../utils/predictions';
 import TrainInstance from './TrainInstance';
 
 interface TrainStatusProps {
@@ -25,6 +25,13 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
   onSelectStation = () => {},
   selectedStation
 }) => {
+  // Check if there are multiple train instances
+  const hasMultipleInstances = allTrainStatuses && allTrainStatuses.length > 1;
+  
+  // Get the selected station name from props
+  const selectedStationName = selectedStation;
+    
+
   if (!trainStatus) {
     return (
       <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
@@ -36,7 +43,6 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
 
   // Calculate real-time minutes away for approaching train
   let realTimeMinutesAway = approaching.minutesAway || 0;
-  console.log('realTimeMinutesAway1 = ', realTimeMinutesAway)
 
   if (approaching.approaching && approaching.eta) {
     const now = new Date();
@@ -52,7 +58,6 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
   while(realTimeMinutesAway < -900 && realTimeMinutesAway < 0){
     realTimeMinutesAway +=1440;
   }
-  console.log('realTimeMinutesAway2 = ', realTimeMinutesAway)
 
   // Generate a human-readable status message with real-time minutes
   const updatedApproaching = {
@@ -63,27 +68,6 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
 
   // Use neutral background color regardless of approaching status
   const statusColor = 'bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-800';
-
-  // Check if there are multiple train instances
-  const hasMultipleInstances = allTrainStatuses && allTrainStatuses.length > 1;
-  
-  // Get the selected station name from props
-  const selectedStationName = selectedStation;
-    
-  // Pre-calculate next railcam stations for all train statuses to avoid multiple calls
-  const nextRailcamStations = useMemo(() => {
-    if (!hasMultipleInstances) {
-      return trainStatus ? { [0]: findNextRailcamStation(trainStatus) } : {};
-    }
-    
-    const result: Record<number, ReturnType<typeof findNextRailcamStation>> = {};
-    allTrainStatuses
-      .filter(status => !status.departed)
-      .forEach((status, index) => {
-        result[index] = findNextRailcamStation(status);
-      });
-    return result;
-  }, [hasMultipleInstances, trainStatus, allTrainStatuses]);
 
   return (
     <div className={`p-4 border rounded-lg ${statusColor}`}>
@@ -143,10 +127,6 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
                     ...status,
                     estimatedArrival: approaching.eta || status.estimatedArrival
                   } : status;
-                  
-                  // Get the pre-calculated next railcam station
-                  const nextRailcam = nextRailcamStations[index];
-                  const nextStationName = nextRailcam?.station.name;
                   
                   return (
                     <TrainInstance

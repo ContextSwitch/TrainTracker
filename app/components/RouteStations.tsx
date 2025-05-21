@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { RailcamStation, TrainStatus } from '../types';
+import { TrainStatus } from '../types';
 import { getStationByName } from '../config';
 
 interface RouteStationsProps {

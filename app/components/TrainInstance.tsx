@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrainStatus as TrainStatusType, RailcamStation } from '../types';
+import { TrainStatus as TrainStatusType } from '../types';
 import { getStationByName } from '../config';
 
 interface TrainInstanceProps {
@@ -77,9 +77,6 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   } else if (isApproaching && hasRailcam) {
     bgColor = 'bg-green-50 dark:bg-green-900/20';
   }
-  
-  // Debug logs to check prop values
-  console.log(`TrainInstance ${trainStatus.trainId}-${instanceId}: isSelected=${isSelected}, isApproaching=${isApproaching}, hasRailcam=${hasRailcam}, nextStation=${trainStatus.nextStation}, departed=${trainStatus.departed}`);
   
   return (
     <div 

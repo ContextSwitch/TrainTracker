@@ -1,35 +1,24 @@
 import * as cdk from 'aws-cdk-lib';
-import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-
-interface StorageStackProps extends cdk.StackProps {
-  environment: string;
-}
+import * as ecr from 'aws-cdk-lib/aws-ecr';
 
 export class StorageStack extends cdk.Stack {
-  public readonly assetsBucket: s3.Bucket;
-  
-  constructor(scope: Construct, id: string, props: StorageStackProps) {
+  public readonly repository: ecr.Repository;
+
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-    
-    // Create an S3 bucket for static assets
-    this.assetsBucket = new s3.Bucket(this, `TrainTrackerAssets-${props.environment}`, {
-      bucketName: `traintracker-assets-${props.environment}-${cdk.Stack.of(this).account}`,
-      versioned: true,
-      publicReadAccess: false,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      removalPolicy: props.environment === 'prod' 
-        ? cdk.RemovalPolicy.RETAIN 
-        : cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: props.environment === 'prod' 
-        ? false 
-        : true
+
+    // Create ECR repository
+    this.repository = new ecr.Repository(this, 'TrainTrackerRepo', {
+      repositoryName: 'traintracker-repo',
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteImages: true
     });
-    
-    // Output the bucket name
-    new cdk.CfnOutput(this, `AssetsBucketName-${props.environment}`, {
-      value: this.assetsBucket.bucketName,
-      description: `The name of the assets bucket for ${props.environment}`
+
+    // Output repository URI
+    new cdk.CfnOutput(this, 'RepositoryURI', {
+      value: this.repository.repositoryUri,
+      description: 'ECR Repository URI'
     });
   }
 }

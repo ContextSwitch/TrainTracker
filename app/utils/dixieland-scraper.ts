@@ -122,7 +122,7 @@ export async function scrapeDixielandTrainStatus(trainId: string, date: Date = n
     
     // Fetch the HTML
     const response = await axios.get(url);
-    const html = response.data;
+    const html = JSON.stringify(response.data);
     
     // Parse the HTML
     const stationInfo = parseDixielandHtml(html);

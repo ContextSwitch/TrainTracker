@@ -1,18 +1,15 @@
 {
-  "family": "traintracker",
-  "executionRoleArn": "<EXECUTION_ROLE_ARN>",
-  "taskRoleArn": "<TASK_ROLE_ARN>",
-  "networkMode": "awsvpc",
+  "executionRoleArn": "${EXECUTION_ROLE_ARN}",
   "containerDefinitions": [
     {
-      "name": "traintracker-container",
-      "image": "<IMAGE>",
+      "name": "web",
+      "image": "${REPOSITORY_URI}:${IMAGE_TAG}",
       "essential": true,
       "portMappings": [
         {
-          "containerPort": 3000,
           "hostPort": 3000,
-          "protocol": "tcp"
+          "protocol": "tcp",
+          "containerPort": 3000
         }
       ],
       "environment": [
@@ -21,16 +18,8 @@
           "value": "production"
         },
         {
-          "name": "TRAIN_STATUS_TABLE",
-          "value": "<TRAIN_STATUS_TABLE>"
-        },
-        {
-          "name": "CURRENT_STATUS_TABLE",
-          "value": "<CURRENT_STATUS_TABLE>"
-        },
-        {
-          "name": "ASSETS_BUCKET",
-          "value": "<ASSETS_BUCKET>"
+          "name": "PORT",
+          "value": "3000"
         },
         {
           "name": "JWT_SECRET",
@@ -44,9 +33,9 @@
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "<LOG_GROUP>",
-          "awslogs-region": "<AWS_REGION>",
-          "awslogs-stream-prefix": "traintracker"
+          "awslogs-group": "${CLOUDWATCH_LOG_GROUP}",
+          "awslogs-region": "${AWS_REGION}",
+          "awslogs-stream-prefix": "ecs"
         }
       },
       "healthCheck": {
@@ -64,6 +53,8 @@
   "requiresCompatibilities": [
     "FARGATE"
   ],
-  "cpu": "512",
-  "memory": "1024"
+  "networkMode": "awsvpc",
+  "cpu": "256",
+  "memory": "512",
+  "family": "TrainTracker-App-TrainTrackerService"
 }

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { NextRequest, NextResponse } from 'next/server';
+// import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 // Secret key for JWT signing - should be in environment variables in production
@@ -56,7 +56,7 @@ export function authenticateAdmin(password: string): AdminUser | null {
 /**
  * Get the current admin user from the request (for API routes)
  */
-export function getAdminUserFromApiRequest(req: any): AdminUser | null {
+export function getAdminUserFromApiRequest(req: { cookies: Record<string, string> }): AdminUser | null {
   console.log('Getting admin user from API request');
   console.log('Cookies in request:', req.cookies);
   

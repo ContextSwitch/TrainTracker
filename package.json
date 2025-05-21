@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "node server.js",
+    "start:default": "next start",
     "lint": "next lint",
     "test": "node tests/run-tests.js",
     "test:watch": "mocha --watch",
