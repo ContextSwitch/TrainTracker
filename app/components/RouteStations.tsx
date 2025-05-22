@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrainStatus } from '../types';
 import { getStationByName } from '../config';
 
@@ -21,6 +21,27 @@ const RouteStations: React.FC<RouteStationsProps> = ({
   trainStatus,
   allStatuses
 }) => {
+  // State to track if the route list is expanded or collapsed
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Check if we're on mobile using window width
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Effect to check screen size and set mobile state
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768); // 768px is typical md breakpoint
+    };
+    
+    // Check on initial load
+    checkIfMobile();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
   
   // Ensure trainId is a string
   const actualTrainId = typeof trainId === 'string' ? trainId : 
@@ -40,13 +61,45 @@ const RouteStations: React.FC<RouteStationsProps> = ({
   // Select the appropriate route based on direction
   const route = direction === 'westbound' ? westboundRoute : eastboundRoute;
   
+  // Set initial expanded state based on screen size when component mounts
+  useEffect(() => {
+    setIsExpanded(!isMobile);
+  }, [isMobile]);
+  
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-      <h3 className="text-lg font-semibold mb-3 dark:text-white">
-        {direction === 'westbound' ? '#3 Chicago → Los Angeles' : '#4 Los Angeles → Chicago'}
-      </h3>
-      <div className="text-sm">
-        <ul className="space-y-2">
+      <div 
+        className={`flex justify-between items-center ${isMobile ? 'cursor-pointer' : ''}`}
+        onClick={() => isMobile && setIsExpanded(!isExpanded)}
+      >
+        <h3 className="text-lg font-semibold dark:text-white">
+          {direction === 'westbound' ? '#3 Chicago → Los Angeles' : '#4 Los Angeles → Chicago'}
+        </h3>
+        {isMobile && (
+          <button 
+            className={`p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+            aria-label={isExpanded ? "Collapse route" : "Expand route"}
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-5 w-5 text-gray-500 dark:text-gray-400" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        )}
+      </div>
+      
+      <div 
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          isExpanded ? 'max-h-[2000px] opacity-100 mt-3' : 'max-h-0 opacity-0 md:max-h-[2000px] md:opacity-100 md:mt-3'
+        }`}
+      >
+        <div className="text-sm">
+          <ul className="space-y-2">
           {route.map((stationName) => {
             const station = getStationByName(stationName);
             const hasRailcam = !!station;
@@ -114,7 +167,8 @@ const RouteStations: React.FC<RouteStationsProps> = ({
               </li>
             );
           })}
-        </ul>
+          </ul>
+        </div>
       </div>
     </div>
   );

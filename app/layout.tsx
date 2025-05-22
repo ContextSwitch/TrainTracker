@@ -50,8 +50,12 @@ export const metadata: Metadata = {
     creator: '@southwestchieftracker',
   },
   icons: {
-    icon: '/train-icon.png',
-    apple: '/train-icon.png',
+    icon: [
+      { url: '/train-icon.png', type: 'image/png' },
+      { url: '/favicon.ico', type: 'image/x-icon' }
+    ],
+    shortcut: ['/train-icon.png'],
+    apple: [{ url: '/train-icon.png', sizes: '180x180' }],
   },
   robots: 'index, follow',
 };
