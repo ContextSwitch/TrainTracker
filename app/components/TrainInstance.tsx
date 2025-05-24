@@ -88,7 +88,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
       }}
     >
       <div className="flex justify-between items-start mb-2">
-        <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-700 dark:text-gray-300">
+        <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-700 dark:text-gray-200">
           Train #{trainStatus.trainId} - Train {instanceId + 1}
         </span>
       </div>
@@ -99,7 +99,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
               {trainStatus.nextStation}
             </p>
             {hasRailcam && (
-              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
+              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 rounded-full">
                 Railcam
               </span>
             )}
@@ -118,7 +118,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
               <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Watching</span>
             </div>
           )}
-          <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">
+          <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-100">
             {new Date(trainStatus.estimatedArrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>

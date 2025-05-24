@@ -46,6 +46,50 @@ html.dark .dark\:bg-gray-800 {
   background-color: var(--background) !important;
 }
 
+/* Fix border colors in dark mode */
+html.dark .dark\:border-gray-700 {
+  border-color: #374151 !important; /* text-gray-700 equivalent */
+}
+
+html.dark .dark\:border-gray-800 {
+  border-color: #1f2937 !important; /* text-gray-800 equivalent */
+}
+
+html.dark .dark\:border-gray-200 {
+  border-color: #1f2937 !important; /* Using a darker color for better contrast */
+}
+
+html.dark .border {
+  border-color: #374151 !important;
+}
+
+/* Force dark mode styles for chips */
+html.dark [class*="bg-gray-100"],
+html.dark [class*="bg-gray-200"] {
+  background-color: #374151 !important; /* dark gray */
+  color: #f3f4f6 !important; /* light gray */
+}
+
+html.dark [class*="bg-green-100"] {
+  background-color: #065f46 !important; /* dark green */
+  color: #d1fae5 !important; /* light green */
+}
+
+html.dark [class*="bg-yellow-100"] {
+  background-color: #92400e !important; /* dark yellow/amber */
+  color: #fef3c7 !important; /* light yellow */
+}
+
+/* Make "The Chief is expected at..." text lighter in dark mode */
+html.dark .dark\:text-gray-300 {
+  color: #e5e7eb !important; /* text-gray-200 equivalent - lighter than gray-300 */
+}
+
+/* Make status messages more visible in dark mode */
+html.dark .text-gray-700 {
+  color: #f3f4f6 !important; /* text-gray-100 equivalent - very light */
+}
+
 /* Make headings and paragraphs lighter in dark mode */
 html.dark h1,
 html.dark h2,

@@ -153,12 +153,12 @@ const RouteStations: React.FC<RouteStationsProps> = ({
                   
                   <div className="flex items-center gap-1">
                     {isNextStop && (
-                      <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-xs px-1.5 py-0.5 rounded">
+                      <div className="bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100 text-xs px-1.5 py-0.5 rounded">
                         Next
                       </div>
                     )}
                     {hasRailcam && (
-                      <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs px-1.5 py-0.5 rounded">
+                      <div className="bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 text-xs px-1.5 py-0.5 rounded">
                         Railcam
                       </div>
                     )}
