@@ -90,6 +90,15 @@ html.dark .text-gray-700 {
   color: #f3f4f6 !important; /* text-gray-100 equivalent - very light */
 }
 
+/* Make station names white in dark mode */
+html.dark .dark\:text-gray-500,
+html.dark .dark\:text-blue-400,
+html.dark .dark\:text-gray-200,
+html.dark .text-gray-800,
+html.dark .text-gray-600 {
+  color: #ffffff !important; /* Pure white */
+}
+
 /* Make headings and paragraphs lighter in dark mode */
 html.dark h1,
 html.dark h2,
