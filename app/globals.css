@@ -90,13 +90,26 @@ html.dark .text-gray-700 {
   color: #f3f4f6 !important; /* text-gray-100 equivalent - very light */
 }
 
-/* Make station names white in dark mode */
-html.dark .dark\:text-gray-500,
-html.dark .dark\:text-blue-400,
+/* Make station names white in dark mode (except non-railcam stops) */
 html.dark .dark\:text-gray-200,
 html.dark .text-gray-800,
 html.dark .text-gray-600 {
   color: #ffffff !important; /* Pure white */
+}
+
+/* Make non-railcam stops gray in dark mode */
+html.dark .dark\:text-gray-500 {
+  color: #9ca3af !important; /* text-gray-400 equivalent - lighter gray but not white */
+}
+
+/* Make webcam stations look like hyperlinks in dark mode */
+html.dark .dark\:text-blue-400 {
+  color: #3b82f6 !important; /* text-blue-500 equivalent - brighter blue */
+}
+
+/* Make next stop highlight darker blue in dark mode */
+html.dark .dark\:bg-blue-900\/50 {
+  background-color: rgba(30, 58, 138, 0.9) !important; /* darker blue with higher opacity */
 }
 
 /* Make headings and paragraphs lighter in dark mode */
