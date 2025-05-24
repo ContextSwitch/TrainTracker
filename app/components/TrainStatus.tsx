@@ -34,7 +34,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
 
   if (!trainStatus) {
     return (
-      <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+      <div className="p-4 border rounded-lg bg-white dark:bg-gray-900 dark:border-gray-700">
         <h3 className="text-lg font-semibold dark:text-white">Train #{trainId}</h3>
         <p className="text-gray-500 dark:text-gray-400">No data available</p>
       </div>
@@ -67,7 +67,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
   const statusMessage = generateStatusMessage(trainStatus, updatedApproaching);
 
   // Use neutral background color regardless of approaching status
-  const statusColor = 'bg-gray-50 border-gray-200 dark:clr-surface-a0 dark:border-gray-800';
+  const statusColor = 'bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-800';
 
   return (
     <div className={`p-4 border rounded-lg ${statusColor}`}>

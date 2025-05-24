@@ -181,7 +181,7 @@ export default function Home() {
   
 
   return (
-    <div className="min-h-screen p-4 md:p-8 dark:clr-surface-a0">
+    <div className="min-h-screen p-4 md:p-8 dark:bg-gray-900">
       <header className="mb-8">
         <div className="flex justify-between items-center">
           <div className="w-10"></div> {/* Spacer to balance the ThemeToggle */}
@@ -245,7 +245,7 @@ export default function Home() {
                 </p>
               </div>
             ) : (
-              <div className="mb-8 p-8 border rounded-lg bg-gray-50 dark:bg-gray-950 dark:border-gray-800 text-center">
+              <div className="mb-8 p-8 border rounded-lg bg-white dark:bg-gray-900 dark:border-gray-800 text-center">
                 <h2 className="text-xl font-semibold mb-2 dark:text-white">No Trains Approaching Railcams</h2>
                 <p className="text-gray-600 dark:text-gray-400">
                   When a train is approaching a railcam location, the live video will appear here.

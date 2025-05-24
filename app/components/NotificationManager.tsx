@@ -68,7 +68,7 @@ const NotificationManager: React.FC<NotificationManagerProps> = ({
   // If we're server-side rendering or notifications aren't supported, render a simpler version
   if (typeof window === 'undefined' || !notificationsSupported) {
     return (
-      <div className="mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-950 dark:border-gray-800">
+      <div className="mt-4 p-4 border rounded-lg bg-white dark:bg-gray-900 dark:border-gray-800">
         <h3 className="text-lg font-semibold dark:text-white">Notifications</h3>
         <p className="dark:text-gray-300">
           Notifications are available in supported browsers.
@@ -85,7 +85,7 @@ const NotificationManager: React.FC<NotificationManagerProps> = ({
   };
 
   return (
-    <div className="mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-950 dark:border-gray-800" hidden>
+    <div className="mt-4 p-4 border rounded-lg bg-white dark:bg-gray-900 dark:border-gray-800" hidden>
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-lg font-semibold dark:text-white">Notifications</h3>
         <div className="flex items-center">
@@ -101,7 +101,7 @@ const NotificationManager: React.FC<NotificationManagerProps> = ({
             aria-checked={notificationsEnabled}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-gray-200 transition-transform ${
                 notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
               }`}
             />

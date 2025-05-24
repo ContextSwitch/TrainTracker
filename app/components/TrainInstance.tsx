@@ -71,7 +71,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   }
   
   // Determine the background color based on selection and approaching status
-  let bgColor = 'bg-white dark:bg-gray-800';
+  let bgColor = 'dark:bg-gray-900';
   if (isSelected && hasRailcam) {
     bgColor = 'bg-blue-50 dark:bg-blue-900/20';
   } else if (isApproaching && hasRailcam) {

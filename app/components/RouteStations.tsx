@@ -67,7 +67,7 @@ const RouteStations: React.FC<RouteStationsProps> = ({
   }, [isMobile]);
   
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
       <div 
         className={`flex justify-between items-center ${isMobile ? 'cursor-pointer' : ''}`}
         onClick={() => isMobile && setIsExpanded(!isExpanded)}

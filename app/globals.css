@@ -17,6 +17,54 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Override bg-white in dark mode */
+.dark .bg-white {
+  background-color: var(--background) !important;
+}
+
+/* Ensure consistent dark mode background colors */
+html.dark {
+  background-color: var(--background);
+}
+
+/* Force dark mode background on all elements with bg-white */
+html.dark body .bg-white,
+html.dark div.bg-white,
+html.dark section.bg-white,
+html.dark article.bg-white,
+html.dark aside.bg-white,
+html.dark header.bg-white,
+html.dark footer.bg-white,
+html.dark main.bg-white,
+html.dark nav.bg-white {
+  background-color: var(--foreground) !important;
+}
+
+/* Ensure dark:bg-gray-900 and dark:bg-gray-800 use the correct background color */
+html.dark .dark\:bg-gray-900,
+html.dark .dark\:bg-gray-800 {
+  background-color: var(--background) !important;
+}
+
+/* Make headings and paragraphs lighter in dark mode */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: #f3f4f6 !important; /* text-gray-100 equivalent */
+}
+
+html.dark p,
+html.dark span:not([class*="text-"]):not([class*="bg-"]),
+html.dark li,
+html.dark a:not([class*="text-"]),
+html.dark label,
+html.dark div:not([class*="text-"]):not([class*="bg-"]) {
+  /*color: #e5e7eb !important;*/ /* text-gray-200 equivalent */
+}
+
 
 /** https://colorffy.com/dark-theme-generator?colors=FFEF5E-121212 */
 /** Base colors */
@@ -55,50 +103,50 @@ body {
 
 /** Theme surface colors */
 .clr-surface-a0 {
-  color: #121212;
+  background-color: #121212;
 }
 
-.clr-primary-a0 {
-  color: #282828;
+.clr-surface-a10 {
+  background-color: #282828;
 }
 
 .clr-surface-a20 {
-  color: #3f3f3f;
+  background-color: #3f3f3f;
 }
 
 .clr-surface-a30 {
-  color: #575757;
+  background-color: #575757;
 }
 
 .clr-surface-a40 {
-  color: #717171;
+  background-color: #717171;
 }
 
 .clr-surface-a50 {
-  color: #8b8b8b;
+  background-color: #8b8b8b;
 }
 
 /** Theme tonal surface colors */
 .clr-surface-tonal-a0 {
-  color: #26241a;
+  background-color: #26241a;
 }
 
 .clr-surface-tonal-a10 {
-  color: #3b382f;
+  background-color: #3b382f;
 }
 
 .clr-surface-tonal-a20 {
-  color: #504e45;
+  background-color: #504e45;
 }
 
 .clr-surface-tonal-a30 {
-  color: #67655d;
+  background-color: #67655d;
 }
 
 .clr-surface-tonal-a40 {
-  color: #7e7d76;
+  background-color: #7e7d76;
 }
 
 .clr-surface-tonal-a50 {
-  color: #979590;
+  background-color: #979590;
 }

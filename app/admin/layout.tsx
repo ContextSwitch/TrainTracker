@@ -24,7 +24,7 @@ export default function AdminLayout({
           <AdminNav />
         </div>
         <div className="flex flex-1 flex-col">
-          <main className="flex-1 overflow-y-auto bg-gray-50 p-6 dark:clr-surface-a0">
+          <main className="flex-1 overflow-y-auto bg-gray-50 p-6 dark:bg-gray-900">
             {children}
           </main>
         </div>
