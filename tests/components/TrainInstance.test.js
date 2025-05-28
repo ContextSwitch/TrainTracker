@@ -53,7 +53,7 @@ describe('TrainInstance Component', () => {
   
   it('should return null when there is no next railcam station', async () => {
     // Mock findNextRailcamStation to return null
-    const originalModule = await import('../../app/utils/predictions.ts');
+    const originalModule = await import('../../app/utils/predictions.js');
     const findNextRailcamStationStub = sinon.stub(originalModule, 'findNextRailcamStation').returns(null);
     
     const { container } = render(

@@ -53,4 +53,5 @@ export interface AppConfig {
     '3': string;
     '4': string;
   };
+  scraperType: 'dixieland' | 'transitdocs';
 }

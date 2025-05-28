@@ -3,7 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { appConfig } from '../../app/config';
 import { scrapeTrainStatus } from '../../app/utils/scraper';
-import { TrainStatus, CurrentStatus, TrainApproaching } from '../../app/types';
+import { scrapeAmtrakTrainStatus } from '../../app/utils/amtrak-scraper';
+import { scrapeTransitDocsTrainStatus } from '../../app/utils/transitdocs-scraper';
+import { TrainStatus, CurrentStatus, TrainApproaching } from '../../app/types/index';
 import { checkTrainApproaching } from '../../app/utils/predictions';
 
 
@@ -60,17 +62,18 @@ export default async function handler(
     let train4Statuses: TrainStatus[] = [];
     
     try {
+      console.log(`Scraping data using ${appConfig.scraperType} scraper...`);
+      
+      // Use the scrapeTrainStatus function which will use the appropriate scraper based on config
       console.log('Scraping data for train #3...');
-      const scraped3 = (await scrapeTrainStatus(appConfig.trainUrls['3'], '3'))
+      const scraped3 = await scrapeTrainStatus('', '3');
       train3Statuses = scraped3;
       console.log(`Found ${scraped3.length} statuses for train #3`);
-      console.log('Train #3 statuses:', JSON.stringify(scraped3, null, 2));
       
       console.log('Scraping data for train #4...');
-      const scraped4 = (await scrapeTrainStatus(appConfig.trainUrls['4'], '4'))
+      const scraped4 = await scrapeTrainStatus('', '4');
       train4Statuses = scraped4;
       console.log(`Found ${scraped4.length} statuses for train #4`);
-      console.log('Train #4 statuses:', JSON.stringify(scraped4, null, 2));
       
       console.log('Scraping completed successfully');
     } catch (scrapeError) {

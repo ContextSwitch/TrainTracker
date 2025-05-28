@@ -5,6 +5,9 @@ import path from 'path';
 import { NextApiRequest, NextApiResponse } from 'next';
 import handler from '../../pages/api/cron';
 import * as scraper from '../../app/utils/scraper';
+import * as transitdocsScraper from '../../app/utils/transitdocs-scraper';
+import * as dixielandScraper from '../../app/utils/dixieland-scraper';
+import { appConfig } from '../../app/config';
 import { mockTrainStatus3, mockTrainStatus4Fort, mockTrainStatus4Las } from '../mocks/mockData';
 
 describe('Cron API Endpoint', () => {
@@ -15,6 +18,8 @@ describe('Cron API Endpoint', () => {
   let fsWriteFileStub: sinon.SinonStub;
   let scrapeTrainStatusStub: sinon.SinonStub;
   let mockTrainStatusStub: sinon.SinonStub;
+  let scrapeTransitDocsTrainStatusStub: sinon.SinonStub;
+  let scrapeDixielandTrainStatusStub: sinon.SinonStub;
   let jsonSpy: sinon.SinonSpy;
   let statusSpy: sinon.SinonSpy;
   let endSpy: sinon.SinonSpy;
@@ -47,6 +52,8 @@ describe('Cron API Endpoint', () => {
     // Stub scraper functions
     scrapeTrainStatusStub = sinon.stub(scraper, 'scrapeTrainStatus');
     mockTrainStatusStub = sinon.stub(scraper, 'mockTrainStatus');
+    scrapeTransitDocsTrainStatusStub = sinon.stub(transitdocsScraper, 'scrapeTransitDocsTrainStatus');
+    scrapeDixielandTrainStatusStub = sinon.stub(dixielandScraper, 'scrapeDixielandTrainStatus');
     
     // Default stubs
     fsExistsStub.returns(true);
@@ -129,6 +136,40 @@ describe('Cron API Endpoint', () => {
     expect(statusSpy.calledWith(500)).to.be.true;
     expect(jsonSpy.firstCall.args[0].success).to.be.false;
     expect(jsonSpy.firstCall.args[0].message).to.include('Error');
+  });
+  
+  it('should use the dixieland scraper when configured', async () => {
+    // Set the scraper type to dixieland
+    appConfig.scraperType = 'dixieland';
+    
+    // Configure the stubs
+    scrapeTrainStatusStub.callThrough(); // Use the real implementation
+    scrapeDixielandTrainStatusStub.withArgs('3').resolves(mockTrainStatus3);
+    scrapeDixielandTrainStatusStub.withArgs('4').resolves(mockTrainStatus4Fort);
+    
+    await handler(req as NextApiRequest, res as NextApiResponse);
+    
+    expect(scrapeDixielandTrainStatusStub.calledTwice).to.be.true;
+    expect(scrapeTransitDocsTrainStatusStub.called).to.be.false;
+    expect(statusSpy.calledWith(200)).to.be.true;
+    expect(jsonSpy.firstCall.args[0].success).to.be.true;
+  });
+  
+  it('should use the transitdocs scraper when configured', async () => {
+    // Set the scraper type to transitdocs
+    appConfig.scraperType = 'transitdocs';
+    
+    // Configure the stubs
+    scrapeTrainStatusStub.callThrough(); // Use the real implementation
+    scrapeTransitDocsTrainStatusStub.withArgs('3').resolves([mockTrainStatus3]);
+    scrapeTransitDocsTrainStatusStub.withArgs('4').resolves([mockTrainStatus4Fort, mockTrainStatus4Las]);
+    
+    await handler(req as NextApiRequest, res as NextApiResponse);
+    
+    expect(scrapeTransitDocsTrainStatusStub.calledTwice).to.be.true;
+    expect(scrapeDixielandTrainStatusStub.called).to.be.false;
+    expect(statusSpy.calledWith(200)).to.be.true;
+    expect(jsonSpy.firstCall.args[0].success).to.be.true;
   });
   
   it('should update current status based on train statuses', async () => {

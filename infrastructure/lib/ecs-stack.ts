@@ -6,6 +6,7 @@ import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 
 interface EcsStackProps extends cdk.StackProps {
   vpc: ec2.Vpc;
@@ -63,7 +64,8 @@ export class EcsStack extends cdk.Stack {
         logGroup: logGroup
       }),
       environment: {
-        'NODE_ENV': 'production'
+        'NODE_ENV': 'production',
+        'PORT': '80'
       },
       healthCheck: {
         command: ['CMD-SHELL', 'curl -f http://localhost/ || exit 1'],
@@ -104,12 +106,37 @@ export class EcsStack extends cdk.Stack {
       }
     });
 
-    // Create listener
-    const listener = alb.addListener('Listener', {
+    // Import existing certificate for chiefjourney.com
+    // Note: Replace the ARN below with the actual ARN of your certificate
+    const certificate = acm.Certificate.fromCertificateArn(
+      this,
+      'Certificate',
+      process.env.SSL_CERTIFICATE_ARN || 'arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id'
+    );
+
+    // Create HTTP listener
+    const httpListener = alb.addListener('HttpListener', {
       port: 80,
       open: true,
       defaultTargetGroups: [targetGroup]
     });
+    
+    // Override the logical ID to match the existing resource
+    const cfnHttpListener = httpListener.node.defaultChild as cdk.CfnResource;
+    cfnHttpListener.overrideLogicalId('TrainTrackerALBHttpListener4CBE1E50');
+
+    // Create HTTPS listener with SSL termination
+    const httpsListener = alb.addListener('HttpsListener', {
+      port: 443,
+      protocol: elbv2.ApplicationProtocol.HTTPS,
+      certificates: [certificate],
+      open: true,
+      defaultTargetGroups: [targetGroup]
+    });
+    
+    // Override the logical ID to match the existing resource
+    const cfnHttpsListener = httpsListener.node.defaultChild as cdk.CfnResource;
+    cfnHttpsListener.overrideLogicalId('TrainTrackerALBHttpsListener5AD44181');
 
     // Create ECS service
     const service = new ecs.FargateService(this, 'Service', {
@@ -136,10 +163,20 @@ export class EcsStack extends cdk.Stack {
     // Attach service to target group
     service.attachToApplicationTargetGroup(targetGroup);
 
-    // Output ALB DNS name
-    new cdk.CfnOutput(this, 'URL', {
+    // Output ALB DNS names
+    new cdk.CfnOutput(this, 'HttpURL', {
       value: `http://${alb.loadBalancerDnsName}`,
-      description: 'Application URL'
+      description: 'HTTP Application URL'
+    });
+    
+    new cdk.CfnOutput(this, 'HttpsURL', {
+      value: `https://${alb.loadBalancerDnsName}`,
+      description: 'HTTPS Application URL'
+    });
+    
+    new cdk.CfnOutput(this, 'DomainURL', {
+      value: 'https://chiefjourney.com',
+      description: 'Domain URL'
     });
   }
 }

@@ -14,6 +14,9 @@ export const appConfig: AppConfig = {
   // Notifications are disabled by default
   notificationsEnabled: false,
   
+  // Default scraper type (dixieland or transitdocs)
+  scraperType: 'transitdocs',
+  
   // List of stations with railcams along the Southwest Chief route
   stations: [
     {

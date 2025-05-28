@@ -1,18 +1,57 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import ScraperToggle from '../../components/admin/ScraperToggle';
+import { AppConfig } from '../../types';
 
 export default function ConfigPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [appConfig, setAppConfig] = useState<Partial<AppConfig>>({
+    scraperType: 'dixieland',
+    checkIntervalMinutes: 60,
+    notificationsEnabled: false,
+    approachWindowMinutes: 30,
+    postArrivalWindowMinutes: 30
+  });
 
   // This is a placeholder for future configuration options
-  // In a real implementation, these would be loaded from the server
   const [config, setConfig] = useState({
     checkIntervalMinutes: 60,
-    notificationsEnabled: true,
+    notificationsEnabled: false,
     predictionEnabled: true,
     debugMode: false,
   });
+
+  // Fetch the current configuration from the server
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/admin/config');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch configuration');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.config) {
+          setAppConfig(data.config);
+        }
+      } catch (error) {
+        console.error('Error fetching configuration:', error);
+        setMessage({ 
+          type: 'error', 
+          text: 'Failed to load configuration. Please try refreshing the page.' 
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchConfig();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -43,6 +82,20 @@ export default function ConfigPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow dark:border-gray-700 dark:bg-gray-800">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-white">Data Source</h2>
+          <div className="mt-4">
+            {loading ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Loading configuration...</span>
+              </div>
+            ) : (
+              <ScraperToggle initialValue={appConfig.scraperType} />
+            )}
+          </div>
+        </div>
+        
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow dark:border-gray-700 dark:bg-gray-800">
           <h2 className="text-lg font-medium text-gray-900 dark:text-white">General Settings</h2>
           
           <div className="mt-4 space-y-4">
@@ -56,7 +109,7 @@ export default function ConfigPage() {
                 id="checkIntervalMinutes"
                 min="1"
                 max="1440"
-                value={config.checkIntervalMinutes}
+                value={appConfig.checkIntervalMinutes || 60}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
               />
@@ -71,7 +124,7 @@ export default function ConfigPage() {
                   id="notificationsEnabled"
                   name="notificationsEnabled"
                   type="checkbox"
-                  checked={config.notificationsEnabled}
+                  checked={appConfig.notificationsEnabled || false}
                   onChange={handleChange}
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
                 />
