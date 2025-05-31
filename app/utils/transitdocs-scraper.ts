@@ -197,9 +197,9 @@ async function scrapeTrainStatusForDate(trainNumber: string, dateStr: string): P
     let status = 'On Time';
     if (nextStop.arrive?.variance) {
       if (nextStop.arrive.variance > 600) { // More than 10 minutes late
-        status = 'Delayed';
-      } else if (nextStop.arrive.variance < -600) { // More than 10 minutes early
         status = 'Early';
+      } else if (nextStop.arrive.variance < -600) { // More than 10 minutes early
+        status = 'Delayed';
       }
     }
     

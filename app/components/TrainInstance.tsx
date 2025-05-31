@@ -67,7 +67,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   // Determine the border color based on selection and approaching status
   let borderColor = 'border-gray-200 dark:border-gray-700';
   if (isSelected && hasRailcam) {
-    borderColor = 'border-blue-500 dark:border-blue-400';
+    borderColor = 'border-blue-500 dark:border-blue-900/20';
   } else if (isApproaching && hasRailcam) {
     borderColor = 'border-green-500 dark:border-green-400';
   }
@@ -75,7 +75,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   // Determine the background color based on selection and approaching status
   let bgColor = 'dark:bg-gray-900';
   if (isSelected && hasRailcam) {
-    bgColor = 'bg-blue-50 dark:bg-blue-900/20';
+    bgColor = 'bg-blue-50 dark:bg-blue-400';
   } else if (isApproaching && hasRailcam) {
     bgColor = 'bg-green-50 dark:bg-green-900/20';
   }
@@ -94,6 +94,12 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
           Train #{trainStatus.trainId} - {trainStatus.date || `Train ${instanceId + 1}`}
         </span>
       </div>
+      {isSelected && hasRailcam && (
+        <div className="flex items-center mb-2">
+          <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
+          <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Watching</span>
+        </div>
+      )}
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center gap-2">
@@ -114,12 +120,6 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
           </p>
         </div>
         <div className="flex items-center">
-          {isSelected && hasRailcam && (
-            <div className="flex items-center mr-2">
-              <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
-              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Watching</span>
-            </div>
-          )}
           <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-100">
             {trainStatus.estimatedArrival 
               ? (typeof trainStatus.estimatedArrival === 'number'
@@ -132,8 +132,12 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
       
 
       
-      {trainStatus.status && trainStatus.status !== 'On time' && (
-        <p className="mt-1 text-xs text-red-500 dark:text-red-400">
+      {trainStatus.status && (
+        <p className={`mt-1 text-xs ${
+          trainStatus.status === 'Early' || trainStatus.status === 'On Time'
+            ? 'text-green-500 dark:text-green-400'
+            : 'text-red-500 dark:text-red-400'
+        }`}>
           Status: {trainStatus.status}
         </p>
       )}

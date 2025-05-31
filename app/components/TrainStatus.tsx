@@ -1,6 +1,7 @@
 import React from 'react';
 import { TrainStatus as TrainStatusType, TrainApproaching } from '../types';
 import { generateStatusMessage } from '../utils/predictions';
+import { getStationByName } from '../config';
 import TrainInstance from './TrainInstance';
 
 interface TrainStatusProps {
@@ -48,9 +49,9 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
     const now = new Date();
     const eta = new Date(approaching.eta);
     realTimeMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
-
   }
 
+  // Adjust for day boundaries (e.g., if the time wraps around midnight)
   while(realTimeMinutesAway > 720 && realTimeMinutesAway > 0){
     realTimeMinutesAway -=1440;
   }
@@ -94,15 +95,8 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
           </p>
         )}
         
-        {approaching.approaching && approaching.station && (
-          <p className="mt-2 text-green-600 dark:text-green-400 font-medium">
-            {realTimeMinutesAway >= 0 ? (
-              `Arriving at ${approaching.station.name} in ${realTimeMinutesAway} minutes`
-            ) : (
-              `Expected in ${approaching.station.name} ${Math.abs(realTimeMinutesAway)} minutes ago`
-            )}
-          </p>
-        )}
+        {/* Only show the approaching message if it's not the next station for this train */}
+
         
         {/* Next Railcam Viewing Section */}
         <div className="mt-3">
@@ -129,7 +123,10 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
                   <TrainInstance
                     key={`${status.trainId}-${index}-${status.nextStation || 'unknown'}`}
                     trainStatus={updatedStatus}
-                    isSelected={selectedStationName === status.nextStation}
+                    isSelected={
+                      getStationByName(selectedStationName)?.name === 
+                      getStationByName(status.nextStation)?.name
+                    }
                     isApproaching={isApproaching}
                     onSelectStation={onSelectStation}
                     instanceId={index}
@@ -144,10 +141,14 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
                     ...trainStatus,
                     estimatedArrival: approaching.eta
                   } : trainStatus}
-                  isSelected={selectedStationName === trainStatus.nextStation}
+                  isSelected={
+                    getStationByName(selectedStationName)?.name === 
+                    getStationByName(trainStatus.nextStation)?.name
+                  }
                   isApproaching={approaching.approaching && 
                     approaching.station && 
-                    trainStatus.nextStation === approaching.station.name}
+                    getStationByName(trainStatus.nextStation)?.name === 
+                    getStationByName(approaching.station.name)?.name}
                   onSelectStation={onSelectStation}
                   instanceId={0}
                 />

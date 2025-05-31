@@ -296,6 +296,7 @@ export default function Home() {
                   className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700 flex items-center justify-center"
                   onClick={triggerUpdate}
                   disabled={loading}
+                  hidden
                 >
                   {loading ? (
                     <>

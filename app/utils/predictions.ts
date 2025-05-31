@@ -269,7 +269,12 @@ export function generateStatusMessage(
   trainStatus: Partial<TrainStatus> & { trainId: string, direction: 'eastbound' | 'westbound', lastUpdated: string, status: string },
   approaching: TrainApproaching
 ): string {
-  if (approaching.approaching && approaching.station && approaching.minutesAway !== undefined) {
+  // Check if the approaching station is the next station for this train
+  const isNextStation = approaching.approaching && 
+                       approaching.station && 
+                       trainStatus.nextStation === approaching.station.name;
+  
+  if (isNextStation && approaching.minutesAway !== undefined) {
     // Get the current time and the estimated arrival time
     const now = new Date();
     const eta = approaching.eta ? new Date(approaching.eta) : null;
@@ -286,8 +291,6 @@ export function generateStatusMessage(
     while(actualMinutesAway < -900 && actualMinutesAway < 0){
       actualMinutesAway +=1440;
     }
-    // Instance ID info (not currently displayed)
-    // const instanceInfo = trainStatus.instanceId ? ` (Instance ${trainStatus.instanceId})` : '';
     
     // Include timezone if available
     const timezoneInfo = trainStatus.timezone ? ` ${trainStatus.timezone}` : '';
@@ -296,10 +299,10 @@ export function generateStatusMessage(
     if (eta && now > eta && actualMinutesAway < -2) {
       // Train has already arrived, but we're still showing the webcam
       const minutesPast = Math.abs(actualMinutesAway);
-      return `The Chief is expected at ${approaching.station.name} approximately ${minutesPast} minutes ago${timezoneInfo}.`;
+      return `The Chief is expected at ${approaching.station?.name || 'the station'} approximately ${minutesPast} minutes ago${timezoneInfo}.`;
     } else {
       // Train is still approaching or just arrived
-      return `The Chief is approaching ${approaching.station.name} and will arrive in approximately ${Math.max(0, actualMinutesAway)} minutes${timezoneInfo}.`;
+      return `The Chief is approaching ${approaching.station?.name || 'the station'} and will arrive in approximately ${Math.max(0, actualMinutesAway)} minutes${timezoneInfo}.`;
     }
   } else if (trainStatus.currentLocation && trainStatus.nextStation) {
     // Instance ID info (not currently displayed)

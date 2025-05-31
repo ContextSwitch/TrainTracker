@@ -112,6 +112,20 @@ html.dark .dark\:bg-blue-900\/50 {
   background-color: rgba(30, 58, 138, 0.9) !important; /* darker blue with higher opacity */
 }
 
+/* Swap colors for train instances with watching indicator in dark mode */
+html.dark .dark\:bg-blue-400 {
+  background-color: rgba(30, 58, 138, 0.2) !important; /* dark blue with low opacity */
+}
+
+html.dark .dark\:border-blue-900\/20 {
+  border-color: #60a5fa !important; /* blue-400 - medium blue */
+}
+
+/* Fix JSON view background in admin data page */
+html.dark .dark\:clr-surface-a0 {
+  background-color: #121212 !important;
+}
+
 /* Make headings and paragraphs lighter in dark mode */
 html.dark h1,
 html.dark h2,
