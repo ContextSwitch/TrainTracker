@@ -34,7 +34,7 @@ const ecsStack = new EcsStack(app, 'TrainTracker-App', {
 const schedulerStack = new SchedulerStack(app, 'TrainTracker-Scheduler', {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
   description: 'Scheduler infrastructure for TrainTracker cron jobs',
-  apiUrl: 'https://chiefjourney.com/api/cron'
+  apiUrl: 'https://www.chiefjourney.com/api/cron'
 });
 
 // Add dependencies
