@@ -37,12 +37,15 @@ export default function About() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-semibold mb-4 dark:text-white">How It Works</h2>
           <p className="mb-4 dark:text-gray-300">
-            The tracker uses data from dixielandsoftware.net to determine the current location and status of the Southwest Chief. 
-            It checks for updates every hour and displays the next station the train will arrive at, along with estimated arrival times.
+            The tracker uses data from asm.transitdocs.com to determine the current location and status of the Southwest Chief. 
+            It checks for updates regularly and displays the next stations the train will arrive at, along with estimated arrival times.
           </p>
           <p className="mb-4 dark:text-gray-300">
             When the train is approaching a station that has a railcam, the app will display the live feed from that railcam. 
             This allows you to watch the train pass by in real-time.
+          </p>
+          <p className="mb-4 dark:text-gray-300">
+            The app tracks multiple train instances simultaneously, showing all active trains along the route. This gives you a comprehensive view of all Southwest Chief trains currently in service.
           </p>
           <p className="dark:text-gray-300">
             The app tracks both Train #3 (westbound from Chicago to Los Angeles) and Train #4 (eastbound from Los Angeles to Chicago).
@@ -52,20 +55,21 @@ export default function About() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-semibold mb-4 dark:text-white">Features</h2>
           <ul className="list-disc pl-6 dark:text-gray-300">
-            <li className="mb-2">Real-time tracking of the Southwest Chief&apos;s location and status</li>
+            <li className="mb-2">Comprehensive tracking of all Southwest Chief train instances</li>
             <li className="mb-2">Live railcam feeds from stations along the route</li>
-            <li className="mb-2">Delay information showing if the train is running late</li>
+            <li className="mb-2">Delay information showing if trains are running late</li>
+            <li className="mb-2">Estimated arrival times for upcoming stations</li>
             <li className="mb-2">Dark mode support for comfortable viewing at night</li>
             <li className="mb-2">Optional browser notifications when a train is approaching a railcam</li>
-            <li>Manual update button to refresh the data on demand</li>
+            <li>Interactive station selection to view specific locations</li>
           </ul>
         </div>
         
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-semibold mb-4 dark:text-white">Data Sources</h2>
           <p className="mb-4 dark:text-gray-300">
-            Train status data is sourced from dixielandsoftware.net, which provides information about Amtrak trains including 
-            their current location, next station, and whether they are running on time or delayed.
+            Train status data is sourced from asm.transitdocs.com, which provides comprehensive information about Amtrak trains including 
+            their current location, next station, scheduled and estimated arrival times, and delay status.
           </p>
           <p className="dark:text-gray-300">
             Railcam feeds are embedded from YouTube channels that provide live streams of railroad locations along the Southwest Chief route.
@@ -80,7 +84,7 @@ export default function About() {
           Southwest Chief Railcam Tracker &copy; {new Date().getFullYear()}
         </p>
         <p className="mt-1">
-          Data sourced from dixielandsoftware.net | Railcam videos from YouTube
+          Data sourced from asm.transitdocs.com | Railcam videos from YouTube
         </p>
         <p className="mt-1">
           Times and Locations are for entertainment purposes only and are not guaranteed to be correct.
