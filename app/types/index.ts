@@ -14,6 +14,7 @@ export interface TrainStatus {
   timezone?: string;        // Timezone of the estimated arrival time (e.g., 'MDT')
   instanceId: number;      // ID to distinguish between multiple instances of the same train
   isNext: boolean;
+  date?: string;           // Date string in YYYY-MM-DD format for display purposes
 }
 
 // Station with railcam information
