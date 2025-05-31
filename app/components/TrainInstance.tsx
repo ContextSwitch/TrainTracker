@@ -31,7 +31,10 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   
   // Get the current time and the estimated arrival time
   const now = new Date();
-  const eta = new Date(trainStatus.estimatedArrival);
+  // Handle both string and number types for estimatedArrival
+  const eta = typeof trainStatus.estimatedArrival === 'number' 
+    ? new Date(trainStatus.estimatedArrival * 1000) 
+    : new Date(trainStatus.estimatedArrival);
   
   // Calculate the actual minutes away based on the current time and ETA
   let actualMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
@@ -119,7 +122,9 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
             </div>
           )}
           <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-100">
-            {new Date(trainStatus.estimatedArrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {trainStatus.scheduledTime 
+              ? new Date(trainStatus.scheduledTime * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              : eta.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
       </div>

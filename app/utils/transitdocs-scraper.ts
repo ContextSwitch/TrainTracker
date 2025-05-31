@@ -167,15 +167,13 @@ async function scrapeTrainStatusForDate(trainNumber: string, dateStr: string): P
     const currentLocation = getStationNameFromCode(currentStationCode);
     const nextStation = getStationNameFromCode(nextStationCode);
     
+    // Get the scheduled arrival/departure time
+    const scheduledTime = nextStop.sched_arrive || nextStop.sched_depart;
+    
     // Calculate the estimated arrival time
-    let estimatedArrival: string | undefined;
-    if (nextStop.arrive?.variance) {
-      // Use scheduled arrival time if available, otherwise use scheduled departure time
-      const scheduledTime = nextStop.sched_arrive || nextStop.sched_depart;
-      if (scheduledTime) {
-        const arrivalTime = scheduledTime + nextStop.arrive.variance;
-        estimatedArrival = new Date(arrivalTime * 1000).toISOString();
-      }
+    let estimatedArrival: number | undefined;
+    if (nextStop.arrive?.variance && scheduledTime) {
+      estimatedArrival = scheduledTime + nextStop.arrive.variance;
     }
     
     // Determine the delay in minutes
@@ -208,6 +206,7 @@ async function scrapeTrainStatusForDate(trainNumber: string, dateStr: string): P
       status: status,
       lastUpdated: new Date(data.last_updated * 1000).toISOString(),
       estimatedArrival: estimatedArrival,
+      scheduledTime: scheduledTime, // Add the scheduled time
       delayMinutes: delayMinutes,
       timezone: data.current_timezone,
       direction: trainNumber === '3' ? 'westbound' : 'eastbound',
