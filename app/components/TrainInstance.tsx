@@ -89,14 +89,14 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
     >
       <div className="flex justify-between items-start mb-2">
         <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-700 dark:text-gray-200">
-          Train #{trainStatus.trainId} - Train {instanceId + 1}
+          Train #{trainStatus.trainId} - {trainStatus.date || `Train ${instanceId + 1}`}
         </span>
       </div>
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center gap-2">
             <p className={`font-medium ${hasRailcam ? 'text-gray-800 dark:text-gray-200' : 'text-gray-500 dark:text-gray-500'}`}>
-              {trainStatus.nextStation}
+              {getStationByName(trainStatus.nextStation)?.name || trainStatus.nextStation}
             </p>
             {hasRailcam && (
               <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 rounded-full">

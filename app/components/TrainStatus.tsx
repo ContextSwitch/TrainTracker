@@ -110,53 +110,50 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
             {hasMultipleInstances ? 'Next Stops' : 'Next Stop'}
           </h4>
           
-          {/* If there are multiple instances, show each one */}
-          {hasMultipleInstances ? (
-            <div>
-              {allTrainStatuses
-                // Filter out departed stations
-                .filter(status => !status.departed)
-                .map((status, index) => {
-                  // Check if this status matches the approaching station
-                  const isApproaching = approaching.approaching && 
-                    approaching.station && 
-                    status.nextStation === approaching.station.name;
-                  
-                  // If this is the approaching station, update its ETA
-                  const updatedStatus = isApproaching ? {
-                    ...status,
-                    estimatedArrival: approaching.eta || status.estimatedArrival
-                  } : status;
-                  
-                  return (
-                    <TrainInstance
-                      key={`${status.trainId}-${index}-${status.nextStation || 'unknown'}`}
-                      trainStatus={updatedStatus}
-                      isSelected={selectedStationName === status.nextStation}
-                      isApproaching={isApproaching}
-                      onSelectStation={onSelectStation}
-                      instanceId={index}
-                    />
-                  );
-                })}
-            </div>
-          ) : (
-            // If there's only one instance, show it
-            trainStatus && (
-              <TrainInstance
-                trainStatus={approaching.approaching && approaching.eta ? {
-                  ...trainStatus,
-                  estimatedArrival: approaching.eta
-                } : trainStatus}
-                isSelected={selectedStationName === trainStatus.nextStation}
-                isApproaching={approaching.approaching && 
+          {/* Always show all train instances */}
+          <div>
+            {allTrainStatuses.length > 0 ? (
+              allTrainStatuses.map((status, index) => {
+                // Check if this status matches the approaching station
+                const isApproaching = approaching.approaching && 
                   approaching.station && 
-                  trainStatus.nextStation === approaching.station.name}
-                onSelectStation={onSelectStation}
-                instanceId={0}
-              />
-            )
-          )}
+                  status.nextStation === approaching.station.name;
+                
+                // If this is the approaching station, update its ETA
+                const updatedStatus = isApproaching ? {
+                  ...status,
+                  estimatedArrival: approaching.eta || status.estimatedArrival
+                } : status;
+                
+                return (
+                  <TrainInstance
+                    key={`${status.trainId}-${index}-${status.nextStation || 'unknown'}`}
+                    trainStatus={updatedStatus}
+                    isSelected={selectedStationName === status.nextStation}
+                    isApproaching={isApproaching}
+                    onSelectStation={onSelectStation}
+                    instanceId={index}
+                  />
+                );
+              })
+            ) : (
+              // If there are no instances in the array but we have a trainStatus, show it
+              trainStatus && (
+                <TrainInstance
+                  trainStatus={approaching.approaching && approaching.eta ? {
+                    ...trainStatus,
+                    estimatedArrival: approaching.eta
+                  } : trainStatus}
+                  isSelected={selectedStationName === trainStatus.nextStation}
+                  isApproaching={approaching.approaching && 
+                    approaching.station && 
+                    trainStatus.nextStation === approaching.station.name}
+                  onSelectStation={onSelectStation}
+                  instanceId={0}
+                />
+              )
+            )}
+          </div>
         </div>
       </div>
     </div>
