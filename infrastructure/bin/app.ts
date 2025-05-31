@@ -4,6 +4,7 @@ import * as cdk from 'aws-cdk-lib';
 import { NetworkStack } from '../lib/network-stack';
 import { StorageStack } from '../lib/storage-stack';
 import { EcsStack } from '../lib/ecs-stack';
+import { SchedulerStack } from '../lib/scheduler-stack';
 
 const app = new cdk.App();
 
@@ -29,6 +30,14 @@ const ecsStack = new EcsStack(app, 'TrainTracker-App', {
   repository: storageStack.repository
 });
 
+// Create Scheduler stack for cron job
+const schedulerStack = new SchedulerStack(app, 'TrainTracker-Scheduler', {
+  env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+  description: 'Scheduler infrastructure for TrainTracker cron jobs',
+  apiUrl: 'https://chiefjourney.com/api/cron'
+});
+
 // Add dependencies
 ecsStack.addDependency(networkStack);
 ecsStack.addDependency(storageStack);
+schedulerStack.addDependency(ecsStack);

@@ -7,6 +7,9 @@ echo "Cleaning up TrainTracker infrastructure..."
 cd "$(dirname "$0")"
 
 # Destroy stacks in reverse order
+echo "Destroying Scheduler stack..."
+npx cdk destroy TrainTracker-Scheduler --force
+
 echo "Destroying ECS stack..."
 npx cdk destroy TrainTracker-App --force
 

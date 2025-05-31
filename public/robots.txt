@@ -1,6 +1,8 @@
-# Disallow all web crawlers
+# Allow web crawlers with specific restrictions
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /admin/
+Disallow: /api/admin/
 
 # Sitemap location
-Sitemap: https://southwestchieftracker.com/sitemap.xml
+Sitemap: https://www.chiefjourney.com/sitemap.xml

@@ -367,7 +367,7 @@ export default function Home() {
           Southwest Chief Railcam Tracker &copy; {new Date().getFullYear()}
         </p>
         <p className="mt-1">
-          Data sourced from dixielandsoftware.net | Railcam videos from YouTube
+          Data sourced from asm.transitdocs.com | Railcam videos from YouTube
         </p>
         <p className="mt-1">
           Times and locations are for entertainment purposes only and are not guaranteed to be correct.

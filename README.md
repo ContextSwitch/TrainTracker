@@ -141,7 +141,7 @@ aws cloudformation describe-stacks --stack-name TrainTracker-App --query "Stacks
 
 ### Environment Structure
 
-The deployment creates three main stacks:
+The deployment creates four main stacks:
 
 1. **TrainTracker-Network**: Contains the network infrastructure
    - VPC
@@ -155,6 +155,31 @@ The deployment creates three main stacks:
    - ECS Cluster
    - Fargate Service
    - Load Balancer
+
+4. **TrainTracker-Scheduler**: Contains the scheduling infrastructure
+   - Lambda function for calling the cron API endpoint
+   - EventBridge rule for scheduling the Lambda function
+
+### Scheduled Tasks
+
+The application includes a scheduled task that runs every 10 minutes to update train data by calling the `/api/cron` endpoint. This is implemented using:
+
+- AWS Lambda function that makes an HTTP request to the API endpoint
+- AWS EventBridge rule that triggers the Lambda function every 10 minutes
+
+The scheduled task is automatically deployed as part of the infrastructure deployment process. No additional steps are required to set it up.
+
+To monitor the scheduled task:
+
+1. View the Lambda function logs in CloudWatch:
+   ```bash
+   aws logs tail /aws/lambda/traintracker-cron-lambda --follow
+   ```
+
+2. Check the EventBridge rule status:
+   ```bash
+   aws events describe-rule --name traintracker-cron-rule
+   ```
 
 ### Cleaning Up
 
@@ -211,4 +236,3 @@ docker run -p 3000:3000 traintracker
 #force image deploy:
 
 aws ecs update-service --cluster arn:aws:ecs:us-east-1:237069437847:cluster/TrainTracker-App-TrainTrackerService --service arn:aws:ecs:us-east-1:237069437847:service/TrainTracker-App-TrainTrackerService/TrainTracker-App-ServiceD69D759B-wYyaGgjovlBw --force-new-deployment --region us-east-1
-

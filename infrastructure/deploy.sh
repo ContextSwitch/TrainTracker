@@ -24,5 +24,8 @@ npx cdk deploy TrainTracker-Storage --require-approval never
 echo "Deploying ECS stack..."
 npx cdk deploy TrainTracker-App --require-approval never
 
+echo "Deploying Scheduler stack..."
+npx cdk deploy TrainTracker-Scheduler --require-approval never
+
 echo "Infrastructure deployment completed successfully!"
 echo "You can now build and push the Docker image using the push-image.sh script."
