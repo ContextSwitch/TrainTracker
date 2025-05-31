@@ -173,7 +173,7 @@ async function scrapeTrainStatusForDate(trainNumber: string, dateStr: string): P
     // Calculate the estimated arrival time
     let estimatedArrival: number | undefined;
     if (nextStop.arrive?.variance && scheduledTime) {
-      estimatedArrival = scheduledTime + nextStop.arrive.variance;
+      estimatedArrival = scheduledTime - nextStop.arrive.variance;
     }
     
     // Determine the delay in minutes

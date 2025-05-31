@@ -47,9 +47,8 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
     actualMinutesAway +=1440;
   }
 
-  if(actualMinutesAway < 0){
-   // trainStatus.status -= actualMinutesAway
-  }
+  // No need to adjust status based on minutes away
+  // This was causing a TypeScript error
 
   // Format the time until arrival
   let timeUntilArrival;
@@ -122,8 +121,8 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
             </div>
           )}
           <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-100">
-            {trainStatus.scheduledTime 
-              ? new Date(trainStatus.scheduledTime * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            {trainStatus.estimatedArrival 
+              ? new Date(trainStatus.estimatedArrival * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
               : eta.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
