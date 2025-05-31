@@ -40,7 +40,9 @@ export default async function handler(
     
     // Temporarily set the scraper type if provided
     if (scraperType && typeof scraperType === 'string') {
-      appConfig.scraperType = scraperType as 'dixieland' | 'transitdocs';
+      // Use type assertion to override the type checking for this test file
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (appConfig as any).scraperType = scraperType;
     }
     
     console.log(`Testing scraper (${appConfig.scraperType}) for train #${trainId}...`);

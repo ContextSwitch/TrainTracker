@@ -81,7 +81,9 @@ export function checkTrainApproaching(trainStatus: Partial<TrainStatus>): TrainA
     return {
       approaching: true,
       station,
-      eta: trainStatus.estimatedArrival,
+      eta: typeof trainStatus.estimatedArrival === 'number' 
+        ? new Date(trainStatus.estimatedArrival * 1000).toISOString() 
+        : trainStatus.estimatedArrival,
       minutesAway,
       youtubeLink: getYoutubeEmbedUrl(station.youtubeLink)
     };
@@ -112,7 +114,9 @@ function processSingleTrainStatus(trainStatus: Partial<TrainStatus> & { directio
       
       return {
         station,
-        estimatedArrival: trainStatus.estimatedArrival,
+        estimatedArrival: typeof trainStatus.estimatedArrival === 'number'
+          ? new Date(trainStatus.estimatedArrival * 1000).toISOString()
+          : String(trainStatus.estimatedArrival),
         minutesAway: minutesAway
       };
     }

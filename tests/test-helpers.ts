@@ -1,8 +1,8 @@
-import chai from 'chai';
-import sinon from 'sinon';
+import * as chai from 'chai';
+import * as sinon from 'sinon';
 import { JSDOM } from 'jsdom';
-import path from 'path';
-import fs from 'fs';
+import * as path from 'path';
+import * as fs from 'fs';
 
 const { expect } = chai;
 
@@ -17,9 +17,10 @@ export function setupDOM(): JSDOM {
   });
   
   // Set up global variables that would be available in a browser environment
-  global.window = dom.window;
+  // Use type assertions to avoid type errors
+  global.window = dom.window as unknown as (Window & typeof globalThis);
   global.document = dom.window.document;
-  global.navigator = dom.window.navigator;
+  global.navigator = dom.window.navigator as Navigator;
   
   return dom;
 }

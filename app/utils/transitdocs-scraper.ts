@@ -68,6 +68,14 @@ interface TransitDocsStop {
   canceled: boolean;
 }
 
+interface TransitDocsPoint {
+  latitude: number;
+  longitude: number;
+  timestamp: number;
+  heading?: number;
+  speed?: number;
+}
+
 interface TransitDocsResponse {
   train_id: string;
   railroad: string;
@@ -90,7 +98,7 @@ interface TransitDocsResponse {
     speed: number;
   };
   stops: TransitDocsStop[];
-  points: any[];
+  points: TransitDocsPoint[];
 }
 
 /**
@@ -172,8 +180,10 @@ async function scrapeTrainStatusForDate(trainNumber: string, dateStr: string): P
     
     // Calculate the estimated arrival time
     let estimatedArrival: number | undefined;
-    if (nextStop.arrive?.variance && scheduledTime) {
-      estimatedArrival = scheduledTime - nextStop.arrive.variance;
+    if (scheduledTime) {
+      // Check if variance is defined (including zero), not just truthy
+      const variance = nextStop.arrive?.variance !== undefined ? nextStop.arrive.variance : 0;
+      estimatedArrival = scheduledTime - variance;
     }
     
     // Determine the delay in minutes

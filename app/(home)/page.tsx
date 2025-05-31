@@ -309,36 +309,7 @@ export default function Home() {
                     'Update Now'
                   )}
                 </button>
-                
-                <button
-                  className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 dark:bg-red-600 dark:hover:bg-red-700 flex items-center justify-center"
-                  onClick={async () => {
-                    if (window.confirm('Are you sure you want to clear all train status data? This will remove all current train information.')) {
-                      setLoading(true);
-                      try {
-                        const response = await fetch('/api/clear-data', {
-                          method: 'POST',
-                        });
-                        
-                        if (!response.ok) {
-                          throw new Error(`Error clearing data: ${response.statusText}`);
-                        }
-                        
-                        // Fetch the updated status after clearing
-                        await fetchCurrentStatus();
-                        alert('Train status data cleared successfully');
-                      } catch (err) {
-                        console.error('Error clearing data:', err);
-                        setError(err instanceof Error ? err.message : 'Unknown error');
-                      } finally {
-                        setLoading(false);
-                      }
-                    }
-                  }}
-                  disabled={loading}
-                >
-                  Clear Data
-                </button>
+
               </div>
               
               <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">

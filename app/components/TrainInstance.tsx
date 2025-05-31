@@ -122,7 +122,9 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
           )}
           <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-100">
             {trainStatus.estimatedArrival 
-              ? new Date(trainStatus.estimatedArrival * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              ? (typeof trainStatus.estimatedArrival === 'number'
+                  ? new Date(trainStatus.estimatedArrival * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : new Date(trainStatus.estimatedArrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
               : eta.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>

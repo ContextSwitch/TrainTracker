@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { scrapeAmtrakTrainStatus } from '../../app/utils/amtrak-scraper';
+import { TrainStatus } from '../../app/types';
 
 type ResponseData = {
   success: boolean;
   message: string;
   scraperType: string;
-  data?: any;
+  data?: TrainStatus[];
   error?: string;
 };
 

@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { appConfig } from '../../../app/config';
 import { verifyToken } from '../../../app/utils/auth-client';
+import { AppConfig } from '../../../app/types';
 
 type ConfigResponse = {
   success: boolean;
   message?: string;
-  config?: any;
+  config?: Partial<AppConfig>;
   error?: string;
 };
 

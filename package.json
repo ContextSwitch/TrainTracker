@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:custom": "NODE_ENV=development node server.js",
     "build": "next build",
     "start": "node server.js",
     "start:default": "next start",
@@ -38,6 +39,7 @@
     "@types/chai": "^5.2.1",
     "@types/cheerio": "^0.22.35",
     "@types/cookie": "^0.6.0",
+    "@types/jsdom": "^21.1.7",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/mocha": "^10.0.10",
     "@types/node": "^20",

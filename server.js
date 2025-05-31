@@ -5,19 +5,26 @@ import next from 'next';
 
 // Determine if we're in development or production mode
 const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev });
+const hostname = 'localhost';
+const app = next({ dev, hostname });
 const handle = app.getRequestHandler();
 
 // Get port from environment variable or default to 80 for production, 3000 for development
 const port = process.env.PORT || (dev ? 3000 : 80);
 
 app.prepare().then(() => {
-  createServer((req, res) => {
-    // Parse the URL
-    const parsedUrl = parse(req.url, true);
-    
-    // Let Next.js handle the request
-    handle(req, res, parsedUrl);
+  createServer(async (req, res) => {
+    try {
+      // Parse the URL
+      const parsedUrl = parse(req.url, true);
+      
+      // Let Next.js handle the request
+      await handle(req, res, parsedUrl);
+    } catch (err) {
+      console.error('Error handling request:', err);
+      res.statusCode = 500;
+      res.end('Internal Server Error');
+    }
   }).listen(port, (err) => {
     if (err) throw err;
     console.log(`> Ready on http://localhost:${port}`);

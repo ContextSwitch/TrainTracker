@@ -1,10 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken } from '../../app/utils/auth-client';
 import { scrapeTransitDocsTrainStatus } from '../../app/utils/transitdocs-scraper';
+import { TrainStatus } from '../../app/types';
 
 type TestScraperResponse = {
   success: boolean;
-  data?: any;
+  data?: {
+    train3: TrainStatus[];
+    train4: TrainStatus[];
+  };
   scraperType?: string;
   error?: string;
 };
@@ -78,7 +82,13 @@ export default async function handler(
 
   try {
     // Test the scraper with the specified scraper type
-    const data: any = {};
+    const data: {
+      train3: TrainStatus[];
+      train4: TrainStatus[];
+    } = {
+      train3: [],
+      train4: []
+    };
 
     // Test the TransitDocs scraper
     console.log('Testing TransitDocs scraper...');

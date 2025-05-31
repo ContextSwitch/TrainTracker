@@ -3,8 +3,6 @@ import fs from 'fs';
 import path from 'path';
 import { appConfig } from '../../app/config';
 import { scrapeTrainStatus } from '../../app/utils/scraper';
-import { scrapeAmtrakTrainStatus } from '../../app/utils/amtrak-scraper';
-import { scrapeTransitDocsTrainStatus } from '../../app/utils/transitdocs-scraper';
 import { TrainStatus, CurrentStatus, TrainApproaching } from '../../app/types/index';
 import { checkTrainApproaching } from '../../app/utils/predictions';
 

@@ -5,7 +5,7 @@ import { AppConfig } from '../../types';
 
 export default function ConfigPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Removed unused loading state
   const [appConfig, setAppConfig] = useState<Partial<AppConfig>>({
     scraperType: 'transitdocs',
     checkIntervalMinutes: 60,
@@ -26,7 +26,7 @@ export default function ConfigPage() {
   useEffect(() => {
     async function fetchConfig() {
       try {
-        setLoading(true);
+        // Removed setLoading(true)
         const response = await fetch('/api/admin/config');
         
         if (!response.ok) {
@@ -45,7 +45,7 @@ export default function ConfigPage() {
           text: 'Failed to load configuration. Please try refreshing the page.' 
         });
       } finally {
-        setLoading(false);
+        // Removed setLoading(false)
       }
     }
     
