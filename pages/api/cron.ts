@@ -42,12 +42,15 @@ export default async function handler(
   
   // Check if it's been at least 15 minutes since the last run
   // This prevents excessive scraping if the cron job is called too frequently
+  // Skip this check if the request has a 'force=true' query parameter
   const now = new Date();
-  if (lastRun && (now.getTime() - lastRun.getTime()) < 15 * 60 * 1000) {
-    console.log('skipping')
+  const forceUpdate = req.query.force === 'true';
+  
+  if (!forceUpdate && lastRun && (now.getTime() - lastRun.getTime()) < 15 * 60 * 1000) {
+    console.log('skipping due to recent update')
     return res.status(200).json({
       success: true,
-      message: 'Skipped update - last update was less than 30 minutes ago',
+      message: 'Skipped update - last update was less than 15 minutes ago',
       lastRun: lastRun.toISOString()
     });
   }

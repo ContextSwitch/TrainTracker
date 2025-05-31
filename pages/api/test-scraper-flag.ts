@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken } from '../../app/utils/auth-client';
-import { scrapeDixielandTrainStatus } from '../../app/utils/dixieland-scraper';
 import { scrapeTransitDocsTrainStatus } from '../../app/utils/transitdocs-scraper';
 
 type TestScraperResponse = {
@@ -70,10 +69,10 @@ export default async function handler(
   }
 
   // Check if the scraper type is valid
-  if (scraperType !== 'dixieland' && scraperType !== 'transitdocs') {
+  if (scraperType !== 'transitdocs') {
     return res.status(400).json({
       success: false,
-      error: 'Invalid scraper type. Must be "dixieland" or "transitdocs".'
+      error: 'Invalid scraper type. Must be "transitdocs".'
     });
   }
 
@@ -81,17 +80,10 @@ export default async function handler(
     // Test the scraper with the specified scraper type
     const data: any = {};
 
-    if (scraperType === 'dixieland') {
-      // Test the Dixieland scraper
-      console.log('Testing Dixieland scraper...');
-      data.train3 = await scrapeDixielandTrainStatus('3');
-      data.train4 = await scrapeDixielandTrainStatus('4');
-    } else {
-      // Test the TransitDocs scraper
-      console.log('Testing TransitDocs scraper...');
-      data.train3 = await scrapeTransitDocsTrainStatus('3');
-      data.train4 = await scrapeTransitDocsTrainStatus('4');
-    }
+    // Test the TransitDocs scraper
+    console.log('Testing TransitDocs scraper...');
+    data.train3 = await scrapeTransitDocsTrainStatus('3');
+    data.train4 = await scrapeTransitDocsTrainStatus('4');
 
     // Return the results
     return res.status(200).json({

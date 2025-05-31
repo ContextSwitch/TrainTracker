@@ -69,15 +69,12 @@ export default async function handler(
     try {
       const { scraperType, notificationsEnabled, checkIntervalMinutes, approachWindowMinutes, postArrivalWindowMinutes } = req.body;
 
-      // Update scraper type if provided
-      if (scraperType !== undefined) {
-        if (scraperType !== 'dixieland' && scraperType !== 'transitdocs') {
-          return res.status(400).json({
-            success: false,
-            error: 'Invalid scraper type. Must be "dixieland" or "transitdocs".'
-          });
-        }
-        appConfig.scraperType = scraperType;
+      // Scraper type is fixed to 'transitdocs'
+      if (scraperType !== undefined && scraperType !== 'transitdocs') {
+        return res.status(400).json({
+          success: false,
+          error: 'Scraper type cannot be changed. The application is configured to use TransitDocs API.'
+        });
       }
 
       // Update notifications if provided
