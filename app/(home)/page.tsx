@@ -20,19 +20,20 @@ export default function Home() {
   const [, setLastSelectedTrain] = useState<string | null>(null);
   
   // State to store the train status
-  const [train3Status, setTrain3Status] = useState<TrainStatus | null>(null);
   const [train3Statuses, setTrain3Statuses] = useState<TrainStatus[]>([]);
   const [train4Statuses, setTrain4Statuses] = useState<TrainStatus[]>([]);
-  
-
 
   // State to track loading and errors
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // State for formatted date to avoid hydration mismatch
+  const [formattedDate, setFormattedDate] = useState<string>('Never');
 
   // Function to fetch the current status
   const fetchCurrentStatus = async () => {
     try {
+      console.log('in fetchCurrentStatus')
       setLoading(true);
       setError(null);
       console.log('0000 current status')
@@ -57,11 +58,10 @@ export default function Home() {
       const train3Data = await train3Response.json();
       const train4Data = await train4Response.json();
       
-      console.log("Lookup response = ", train3Response, train4Response)
+      console.log("Lookup response = ", train3Data, train4Data)
 
       // Store all train instances
       if (train3Data && train3Data.length > 0) {
-        setTrain3Status(train3Data[0]); // Keep the first one as the primary status
         setTrain3Statuses(train3Data); // Store all instances
       }
       
@@ -153,6 +153,7 @@ export default function Home() {
   
   // Fetch the current status on mount and set up polling
   useEffect(() => {
+    console.log('in useEffect')
     // Fetch the initial status
     fetchCurrentStatus();
     
@@ -178,6 +179,13 @@ export default function Home() {
       }
     }
   }, [currentStatus, showVideoFor]);
+  
+  // Update formatted date when currentStatus.lastUpdated changes
+  useEffect(() => {
+    if (currentStatus.lastUpdated) {
+      setFormattedDate(new Date(currentStatus.lastUpdated).toLocaleString());
+    }
+  }, [currentStatus.lastUpdated]);
   
 
   return (
@@ -224,7 +232,7 @@ export default function Home() {
               selectedStation={showVideoFor?.station?.name}
               trainId="3"
               direction="westbound"
-              trainStatus={train3Status}
+              trainStatus={train3Statuses.length > 0 ? train3Statuses[0] : null}
               allStatuses={train3Statuses}
             />
           </div>
@@ -257,7 +265,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <TrainStatusComponent
                 trainId="3"
-                trainStatus={train3Status}
+                trainStatus={train3Statuses.length > 0 ? train3Statuses[0] : null}
                 direction="Los Angeles"
                 approaching={currentStatus.train3}
                 allTrainStatuses={train3Statuses}
@@ -334,7 +342,7 @@ export default function Home() {
               </div>
               
               <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Last updated: {currentStatus.lastUpdated ? new Date(currentStatus.lastUpdated).toLocaleString() : 'Never'}
+                Last updated: {formattedDate}
               </p>
             </div>
           </div>

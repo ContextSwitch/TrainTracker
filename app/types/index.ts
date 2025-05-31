@@ -7,13 +7,15 @@ export interface TrainStatus {
   lastUpdated: string;      // ISO date string
   currentLocation?: string; // Current location name if available
   nextStation: string;     // Next station name
-  estimatedArrival?: string; // ISO date string for estimated arrival at next station
+  estimatedArrival?: string | number; // ISO date string or Unix timestamp for estimated arrival at next station
+  scheduledTime?: number;    // Unix timestamp for scheduled arrival/departure at next station
   status: string;           // Status message (on time, delayed, etc.)
   delayMinutes?: number;    // Delay in minutes if available
   departed?: boolean;       // Whether the train has departed from the station
   timezone?: string;        // Timezone of the estimated arrival time (e.g., 'MDT')
   instanceId: number;      // ID to distinguish between multiple instances of the same train
   isNext: boolean;
+  date?: string;           // Date string in YYYY-MM-DD format for display purposes
 }
 
 // Station with railcam information
@@ -53,5 +55,5 @@ export interface AppConfig {
     '3': string;
     '4': string;
   };
-  scraperType: 'dixieland' | 'transitdocs';
+  scraperType: 'transitdocs';
 }

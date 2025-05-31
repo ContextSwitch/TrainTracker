@@ -14,7 +14,7 @@ export const appConfig: AppConfig = {
   // Notifications are disabled by default
   notificationsEnabled: false,
   
-  // Default scraper type (dixieland or transitdocs)
+  // Using TransitDocs API for train data
   scraperType: 'transitdocs',
   
   // List of stations with railcams along the Southwest Chief route
@@ -65,7 +65,7 @@ export const appConfig: AppConfig = {
     },
     {
       name: 'Fort Madison',
-      youtubeLink: 'https://www.youtube.com/watch?v=L6eG4ahJc_Q'
+      youtubeLink: 'https://www.youtube.com/watch?v=4whmPpwjEXY'
     },
     {
       name: 'Galesburg',

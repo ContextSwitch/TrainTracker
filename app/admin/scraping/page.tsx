@@ -6,29 +6,78 @@ export default function ScrapingControlsPage() {
   const [scraping, setScraping] = useState(false);
   const [scrapeSuccess, setScrapeSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Clear data states
+  const [clearing, setClearing] = useState(false);
+  const [clearSuccess, setClearSuccess] = useState(false);
+  const [clearError, setClearError] = useState<string | null>(null);
 
+  // Handle manual scrape
   const handleManualScrape = async () => {
+    console.log('Manual scrape button clicked');
     try {
       setScraping(true);
       setError(null);
       setScrapeSuccess(false);
 
-      const response = await fetch('/api/scrape', {
-        method: 'POST',
+      console.log('Making fetch request to /api/cron?force=true');
+      const response = await fetch('/api/cron?force=true', {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
       });
+      console.log('Fetch response received:', response);
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to trigger scraping');
       }
 
+      console.log('Scrape successful');
       setScrapeSuccess(true);
       setTimeout(() => setScrapeSuccess(false), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while scraping data');
       console.error('Error scraping data:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred while scraping data');
     } finally {
       setScraping(false);
+    }
+  };
+  
+  // Handle clear data
+  const handleClearData = async () => {
+    console.log('Clear data button clicked');
+    try {
+      setClearing(true);
+      setClearError(null);
+      setClearSuccess(false);
+
+      console.log('Making fetch request to /api/clear-data');
+      const response = await fetch('/api/clear-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      console.log('Clear data response received:', response);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to clear data');
+      }
+
+      console.log('Data cleared successfully');
+      setClearSuccess(true);
+      setTimeout(() => setClearSuccess(false), 3000);
+    } catch (err) {
+      console.error('Error clearing data:', err);
+      setClearError(err instanceof Error ? err.message : 'An error occurred while clearing data');
+    } finally {
+      setClearing(false);
     }
   };
 
@@ -48,16 +97,37 @@ export default function ScrapingControlsPage() {
             Trigger a manual scrape of train data from Amtrak
           </p>
           <div className="mt-4">
-            <button
-              onClick={handleManualScrape}
-              disabled={scraping}
-              className="inline-flex items-center rounded-md bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-              </svg>
-              {scraping ? 'Scraping...' : 'Trigger Manual Scrape'}
-            </button>
+            <div className="space-y-4">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('Button clicked, calling handleManualScrape');
+                  handleManualScrape();
+                }}
+                disabled={scraping}
+                className="inline-flex items-center rounded-md bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                </svg>
+                {scraping ? 'Scraping...' : 'Trigger Manual Scrape'}
+              </button>
+              
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('Button clicked, calling handleClearData');
+                  handleClearData();
+                }}
+                disabled={clearing}
+                className="inline-flex items-center rounded-md bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {clearing ? 'Clearing...' : 'Clear Data'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -160,6 +230,7 @@ export default function ScrapingControlsPage() {
         </div>
       </div>
 
+      {/* Status messages */}
       {error && (
         <div className="rounded-md bg-red-50 p-4 dark:bg-red-900/30">
           <div className="flex">
@@ -175,6 +246,26 @@ export default function ScrapingControlsPage() {
           <div className="flex">
             <div className="text-sm text-green-700 dark:text-green-400">
               Scraping completed successfully!
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {clearError && (
+        <div className="rounded-md bg-red-50 p-4 dark:bg-red-900/30">
+          <div className="flex">
+            <div className="text-sm text-red-700 dark:text-red-400">
+              {clearError}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {clearSuccess && (
+        <div className="rounded-md bg-green-50 p-4 dark:bg-green-900/30">
+          <div className="flex">
+            <div className="text-sm text-green-700 dark:text-green-400">
+              Data cleared successfully!
             </div>
           </div>
         </div>

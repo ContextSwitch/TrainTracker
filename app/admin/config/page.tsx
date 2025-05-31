@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ScraperToggle from '../../components/admin/ScraperToggle';
 import { AppConfig } from '../../types';
 
 export default function ConfigPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [appConfig, setAppConfig] = useState<Partial<AppConfig>>({
-    scraperType: 'dixieland',
+    scraperType: 'transitdocs',
     checkIntervalMinutes: 60,
     notificationsEnabled: false,
     approachWindowMinutes: 30,
@@ -84,14 +83,14 @@ export default function ConfigPage() {
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow dark:border-gray-700 dark:bg-gray-800">
           <h2 className="text-lg font-medium text-gray-900 dark:text-white">Data Source</h2>
           <div className="mt-4">
-            {loading ? (
-              <div className="flex items-center justify-center py-4">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
-                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Loading configuration...</span>
-              </div>
-            ) : (
-              <ScraperToggle initialValue={appConfig.scraperType} />
-            )}
+            <div className="py-2">
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                <span className="font-medium">Data Source:</span> TransitDocs API
+              </p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                The application is configured to use the TransitDocs API for train data.
+              </p>
+            </div>
           </div>
         </div>
         
