@@ -124,8 +124,9 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
                     key={`${status.trainId}-${index}-${status.nextStation || 'unknown'}`}
                     trainStatus={updatedStatus}
                     isSelected={
+                      selectedStationName ? 
                       getStationByName(selectedStationName)?.name === 
-                      getStationByName(status.nextStation)?.name
+                      getStationByName(status.nextStation)?.name : false
                     }
                     isApproaching={isApproaching}
                     onSelectStation={onSelectStation}
@@ -142,8 +143,9 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
                     estimatedArrival: approaching.eta
                   } : trainStatus}
                   isSelected={
+                    selectedStationName ? 
                     getStationByName(selectedStationName)?.name === 
-                    getStationByName(trainStatus.nextStation)?.name
+                    getStationByName(trainStatus.nextStation)?.name : false
                   }
                   isApproaching={approaching.approaching && 
                     approaching.station && 
