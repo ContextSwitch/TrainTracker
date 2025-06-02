@@ -248,7 +248,7 @@ export default function Home() {
                 <div className="bg-black rounded-lg overflow-hidden">
                   <YouTubePlayer videoUrl={showVideoFor.youtubeLink} />
                 </div>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p hidden className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                   Train #{showVideoFor === currentStatus.train3 ? '3' : '4'} is approaching this location
                 </p>
               </div>

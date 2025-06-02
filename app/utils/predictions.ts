@@ -322,7 +322,7 @@ export function generateStatusMessage(
         const minutes = trainStatus.delayMinutes % 60;
         delayInfo = ` (${hours} hour${hours !== 1 ? 's' : ''}, ${minutes} minute${minutes !== 1 ? 's' : ''} late)`;
       } else {
-        delayInfo = ` (${trainStatus.delayMinutes} minute${trainStatus.delayMinutes !== 1 ? 's' : ''} late)`;
+        delayInfo = ` (${trainStatus.delayMinutes} minute${trainStatus.delayMinutes !== 1 ? 's' : ''} early)`;
       }
     }
     

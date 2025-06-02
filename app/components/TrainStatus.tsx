@@ -77,7 +77,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
       </h3>
       
       <div className="mt-2">
-        <p className="text-gray-700 dark:text-gray-300">{statusMessage}</p>
+        <p hidden className="text-gray-700 dark:text-gray-300">{statusMessage}</p>
         
         {trainStatus.status && (
           <p className="mt-1 text-sm dark:text-gray-300" hidden>
