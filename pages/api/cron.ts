@@ -58,29 +58,24 @@ export default async function handler(
     lastRun = now;
     
     // Use the scraper to get real data
-    // If scraping fails, fall back to mock data
     let train3Statuses: TrainStatus[] = [];
     let train4Statuses: TrainStatus[] = [];
-    
-    try {
-      console.log(`Scraping data using ${appConfig.scraperType} scraper...`);
-      
-      // Use the scrapeTrainStatus function which will use the appropriate scraper based on config
-      console.log('Scraping data for train #3...');
-      const scraped3 = await scrapeTrainStatus('', '3');
-      train3Statuses = scraped3;
-      console.log(`Found ${scraped3.length} statuses for train #3`);
-      
-      console.log('Scraping data for train #4...');
-      const scraped4 = await scrapeTrainStatus('', '4');
-      train4Statuses = scraped4;
-      console.log(`Found ${scraped4.length} statuses for train #4`);
-      
-      console.log('Scraping completed successfully');
-    } catch (scrapeError) {
-      console.error('Error scraping train data, falling back to mock data:', scrapeError);
-    }
-    
+
+    console.log(`Scraping data using ${appConfig.scraperType} scraper...`);
+
+    // Use the scrapeTrainStatus function which will use the appropriate scraper based on config
+    console.log('Scraping data for train #3...');
+    const scraped3 = await scrapeTrainStatus('', '3');
+    train3Statuses = scraped3;
+    console.log(`Found ${scraped3.length} statuses for train #3`);
+
+    console.log('Scraping data for train #4...');
+    const scraped4 = await scrapeTrainStatus('', '4');
+    train4Statuses = scraped4;
+    console.log(`Found ${scraped4.length} statuses for train #4`);
+
+    console.log('Scraping completed successfully');
+
     // Save the train status data
     saveTrains(train3Statuses);
     saveTrains(train4Statuses);

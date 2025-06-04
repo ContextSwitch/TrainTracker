@@ -52,10 +52,6 @@ export const appConfig: AppConfig = {
       youtubeLink: 'https://www.youtube.com/watch?v=BgmZJ-NUqiY'
     },
     {
-      name: 'Lawrence',
-      youtubeLink: 'https://www.youtube.com/watch?v=NI_WrhG0TVA'
-    },
-    {
       name: 'Kansas City',
       youtubeLink: 'https://www.youtube.com/watch?v=u6UbwlQQ3QU'
     },
@@ -65,7 +61,7 @@ export const appConfig: AppConfig = {
     },
     {
       name: 'Fort Madison',
-      youtubeLink: 'https://www.youtube.com/watch?v=4whmPpwjEXY'
+      youtubeLink: 'https://www.youtube.com/watch?v=L6eG4ahJc_Q'
     },
     {
       name: 'Galesburg',

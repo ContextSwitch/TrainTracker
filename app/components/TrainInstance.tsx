@@ -37,15 +37,9 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
     : new Date(trainStatus.estimatedArrival);
   
   // Calculate the actual minutes away based on the current time and ETA
-  let actualMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
+  const actualMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
   
-  while(actualMinutesAway > 720 && actualMinutesAway > 0){
-    actualMinutesAway -=1440;
-  }
 
-  while(actualMinutesAway < -900 && actualMinutesAway < 0){
-    actualMinutesAway +=1440;
-  }
 
   // No need to adjust status based on minutes away
   // This was causing a TypeScript error
@@ -56,10 +50,16 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
     const hours = Math.floor(actualMinutesAway / 60);
     const minutes = actualMinutesAway % 60;
     timeUntilArrival = `${hours} hr${hours !== 1 ? 's' : ''} ${minutes} min`;
-  } else {
-    timeUntilArrival = `${actualMinutesAway} min`;
-  }
+  } 
+  else if( actualMinutesAway < -60){
+        const hours = Math.abs(Math.floor(actualMinutesAway / 60));
+        const minutes = Math.abs(actualMinutesAway % 60);
+        timeUntilArrival = `${hours} hr${hours !== 1 ? 's' : ''} ${minutes} min`;
 
+  }
+  else {
+    timeUntilArrival = `${Math.abs(actualMinutesAway)} min`;
+  }
 
   // Determine if the train has already passed the station
   const hasPassed = actualMinutesAway <= 0;
@@ -114,7 +114,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {hasPassed 
-              ? `Expected ${Math.abs(actualMinutesAway)} min ago` 
+              ? `Expected ${timeUntilArrival} ago` 
               : `Estimated in ${timeUntilArrival}`
             }
           </p>

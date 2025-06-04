@@ -28,7 +28,20 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
 }) => {
   // Check if there are multiple train instances
   const hasMultipleInstances = allTrainStatuses && allTrainStatuses.length > 1;
-  
+
+  if(allTrainStatuses.length > 2){
+    allTrainStatuses = allTrainStatuses.filter(stop => {
+      const est = (Math.floor((new Date()).getTime() /(1000))  - Number(stop.estimatedArrival))/60;
+      return ((stop.nextStation != 'Chicago, IL' && stop.nextStation != 'Los Angeles, CA') || (est < 180 && est > 0) || (est > -180 && est < 0))
+    })
+  }
+
+  allTrainStatuses.sort((a, b) =>{
+    return Number(a.estimatedArrival) - Number(b.estimatedArrival)
+  })
+
+  console.log("allTrainStatuses = ", allTrainStatuses)
+
   // Get the selected station name from props
   const selectedStationName = selectedStation;
     
@@ -107,6 +120,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
           {/* Always show all train instances */}
           <div>
             {allTrainStatuses.length > 0 ? (
+
               allTrainStatuses.map((status, index) => {
                 // Check if this status matches the approaching station
                 const isApproaching = approaching.approaching && 

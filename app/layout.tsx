@@ -1,5 +1,8 @@
+"use client"; // Required for usePathname
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import Script from 'next/script'; // Import Script
+import { usePathname } from 'next/navigation'; // Import usePathname
 import './globals.css';
 import { ThemeProvider } from './context/ThemeContext';
 
@@ -65,9 +68,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const isAdminPage = pathname ? pathname.startsWith('/admin') : false;
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {!isAdminPage && (
+          <>
+            <Script
+              async
+              src="https://www.googletagmanager.com/gtag/js?id=G-P7C9DTHZ68"
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics-script" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-P7C9DTHZ68');
+              `}
+            </Script>
+          </>
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
