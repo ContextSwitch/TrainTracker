@@ -114,11 +114,35 @@ export class EcsStack extends cdk.Stack {
       process.env.SSL_CERTIFICATE_ARN || 'arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id'
     );
 
-    // Create HTTP listener
+    // Create HTTP listener with redirect to HTTPS
     const httpListener = alb.addListener('HttpListener', {
       port: 80,
       open: true,
-      defaultTargetGroups: [targetGroup]
+      defaultAction: elbv2.ListenerAction.redirect({
+        protocol: 'HTTPS',
+        port: '443',
+        host: '#{host}',
+        path: '/#{path}',
+        query: '#{query}',
+        permanent: true
+      })
+    });
+    
+    // Add a rule to redirect HTTP apex domain directly to HTTPS www subdomain
+    new elbv2.ApplicationListenerRule(this, 'HttpRedirectToWwwRule', {
+      listener: httpListener,
+      priority: 1, // Highest priority
+      conditions: [
+        elbv2.ListenerCondition.hostHeaders(['chiefjourney.com'])
+      ],
+      action: elbv2.ListenerAction.redirect({
+        protocol: 'HTTPS',
+        port: '443',
+        host: 'www.chiefjourney.com',
+        path: '/#{path}',
+        query: '#{query}',
+        permanent: true
+      })
     });
     
     // Override the logical ID to match the existing resource
@@ -134,6 +158,21 @@ export class EcsStack extends cdk.Stack {
       defaultTargetGroups: [targetGroup]
     });
     
+    // Add a listener rule to redirect apex domain to www subdomain
+    new elbv2.ApplicationListenerRule(this, 'RedirectToWwwRule', {
+      listener: httpsListener,
+      priority: 1, // Highest priority to ensure it's evaluated first
+      conditions: [
+        elbv2.ListenerCondition.hostHeaders(['chiefjourney.com'])
+      ],
+      action: elbv2.ListenerAction.redirect({
+        host: 'www.chiefjourney.com',
+        path: '/#{path}',
+        query: '#{query}',
+        permanent: true
+      })
+    });
+    
     // Override the logical ID to match the existing resource
     const cfnHttpsListener = httpsListener.node.defaultChild as cdk.CfnResource;
     cfnHttpsListener.overrideLogicalId('TrainTrackerALBHttpsListener5AD44181');
@@ -142,7 +181,7 @@ export class EcsStack extends cdk.Stack {
     const service = new ecs.FargateService(this, 'Service', {
       cluster,
       taskDefinition,
-      desiredCount: 1,
+      desiredCount: 2, // Updated to 2
       securityGroups: [props.ecsSecurityGroup],
       assignPublicIp: true,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
@@ -153,8 +192,8 @@ export class EcsStack extends cdk.Stack {
           weight: 1
         }
       ],
-      minHealthyPercent: 0,
-      maxHealthyPercent: 100,
+      minHealthyPercent: 50, // Updated for rolling deployment
+      maxHealthyPercent: 150, // Updated for rolling deployment
       deploymentController: {
         type: ecs.DeploymentControllerType.ECS
       }

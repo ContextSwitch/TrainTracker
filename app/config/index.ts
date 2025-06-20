@@ -52,6 +52,10 @@ export const appConfig: AppConfig = {
       youtubeLink: 'https://www.youtube.com/watch?v=BgmZJ-NUqiY'
     },
     {
+      name: 'Lawrence',
+      youtubeLink: 'https://www.youtube.com/watch?v=PAU2JtU4WCo'
+    },
+    {
       name: 'Kansas City',
       youtubeLink: 'https://www.youtube.com/watch?v=u6UbwlQQ3QU'
     },

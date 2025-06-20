@@ -63,6 +63,19 @@ If you encounter issues with SSL:
 
 ## Security Considerations
 
-- The application supports both HTTP and HTTPS access
-- For maximum security, consider configuring a redirect from HTTP to HTTPS at the ALB level
+- The application now forces HTTPS by redirecting all HTTP traffic to HTTPS at the ALB level
+- A fallback HTTPS redirect is also implemented in the Next.js middleware for additional security
+- The apex domain (chiefjourney.com) is redirected to the www subdomain (www.chiefjourney.com) for consistent SSL coverage
 - Regularly rotate your SSL certificates in ACM
+
+## Domain Configuration
+
+The application is configured with the following domain behavior:
+
+1. **Direct HTTP apex to HTTPS www redirection**: HTTP requests to chiefjourney.com are redirected directly to https://www.chiefjourney.com in a single step
+2. **HTTPS apex to www redirection**: HTTPS requests to chiefjourney.com are redirected to www.chiefjourney.com
+3. **General HTTP to HTTPS redirection**: All other HTTP traffic (including www.chiefjourney.com) is redirected to HTTPS
+4. All redirects preserve the original path and query parameters
+5. All redirects use permanent (301) redirects for better SEO
+
+These rules are implemented at the Application Load Balancer level with carefully prioritized listener rules to ensure the correct redirection behavior.
