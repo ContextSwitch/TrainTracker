@@ -1,11 +1,12 @@
 services:
-  # Main web service
+  # Main web service (Node.js runtime - simpler than Docker)
   - type: web
     name: traintracker-web
-    runtime: docker
+    runtime: node
     repo: https://github.com/ContextSwitch/TrainTracker.git
     branch: main
-    dockerfilePath: ./Dockerfile
+    buildCommand: npm ci --legacy-peer-deps && npm run build
+    startCommand: npm start
     numInstances: 1
     plan: starter
     healthCheckPath: /

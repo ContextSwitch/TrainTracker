@@ -19,7 +19,7 @@ git add .
 git commit -m "Update configuration for Render deployment"
 git push origin main
 ```
-
+ss
 ## Step 2: Create Web Service on Render
 
 1. Go to [Render Dashboard](https://dashboard.render.com)
@@ -27,9 +27,10 @@ git push origin main
 3. Connect your GitHub repository: `ContextSwitch/TrainTracker`
 4. Configure the service:
    - **Name**: `traintracker-web`
-   - **Runtime**: Docker
+   - **Runtime**: Node
    - **Branch**: main
-   - **Dockerfile Path**: `./Dockerfile`
+   - **Build Command**: `npm ci --legacy-peer-deps && npm run build`
+   - **Start Command**: `npm start`
    - **Plan**: Starter ($7/month)
 
 5. Set Environment Variables:
@@ -41,6 +42,13 @@ git push origin main
    ```
 
 6. Click "Create Web Service"
+
+### Alternative: Docker Deployment (if Node.js fails)
+
+If the Node.js runtime fails, try Docker:
+1. Change **Runtime** to "Docker"
+2. Set **Dockerfile Path** to `./Dockerfile.render` (alternative Dockerfile)
+3. Keep other settings the same
 
 ## Step 3: Configure Custom Domain
 

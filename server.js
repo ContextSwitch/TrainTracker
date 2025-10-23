@@ -9,8 +9,8 @@ const hostname = 'localhost';
 const app = next({ dev, hostname });
 const handle = app.getRequestHandler();
 
-// Get port from environment variable or default to 80 for production, 3000 for development
-const port = process.env.PORT || (dev ? 3000 : 80);
+// Get port from environment variable or default to 10000 for production, 3000 for development
+const port = process.env.PORT || (dev ? 3000 : 10000);
 
 app.prepare().then(() => {
   createServer(async (req, res) => {

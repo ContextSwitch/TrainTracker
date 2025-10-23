@@ -1,0 +1,35 @@
+# Alternative Dockerfile for Render deployment
+FROM node:18-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy package files
+COPY package*.json ./
+
+# Set npm configuration for legacy peer deps
+RUN npm config set legacy-peer-deps true
+
+# Install dependencies
+RUN npm ci --only=production --no-audit --no-fund
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Expose port
+EXPOSE 10000
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=10000
+
+# Start the application
+CMD ["npm", "start"]

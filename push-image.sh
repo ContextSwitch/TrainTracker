@@ -74,8 +74,8 @@ echo "Docker image pushed successfully to $REPOSITORY_URI:latest"
 echo "Updating ECS service..."
 
 # Check if the ECS cluster exists
-if ! aws ecs describe-clusters --clusters TrainTracker-App-TrainTrackerCluster --query "clusters[0].clusterArn" --output text &> /dev/null; then
-  echo "Warning: ECS cluster 'TrainTracker-App-TrainTrackerCluster' not found."
+if ! aws ecs describe-clusters --clusters TrainTracker-App-TrainTrackerService --query "clusters[0].clusterArn" --output text &> /dev/null; then
+  echo "Warning: ECS cluster 'TrainTracker-App-TrainTrackerService' not found."
   echo "This could be because:"
   echo "  1. The infrastructure deployment (deploy.sh) hasn't been run yet"
   echo "  2. The infrastructure deployment failed"
@@ -92,7 +92,7 @@ if ! aws ecs describe-clusters --clusters TrainTracker-App-TrainTrackerCluster -
 fi
 
 # Get the service name
-SERVICE_NAME=$(aws ecs list-services --cluster TrainTracker-App-TrainTrackerCluster --query "serviceArns[0]" --output text | awk -F'/' '{print $NF}')
+SERVICE_NAME=$(aws ecs list-services --cluster TrainTracker-App-TrainTrackerService --query "serviceArns[0]" --output text | awk -F'/' '{print $NF}')
 
 if [ -z "$SERVICE_NAME" ] || [ "$SERVICE_NAME" == "None" ]; then
   echo "Warning: Could not retrieve ECS service name."
@@ -110,9 +110,17 @@ fi
 
 echo "Using ECS service: $SERVICE_NAME"
 
+# Get the cluster ARN
+CLUSTER_ARN=$(aws ecs describe-clusters --clusters TrainTracker-App-TrainTrackerService --query "clusters[0].clusterArn" --output text)
+
+# Get the service ARN
+SERVICE_ARN=$(aws ecs list-services --cluster TrainTracker-App-TrainTrackerService --query "serviceArns[0]" --output text)
+
+echo "Using cluster ARN: $CLUSTER_ARN"
+echo "Using service ARN: $SERVICE_ARN"
+
 # Update the service
-#aws ecs update-service --cluster TrainTracker-App-TrainTrackerCluster --service $SERVICE_NAME --force-new-deployment
-aws ecs update-service --cluster arn:aws:ecs:us-east-1:237069437847:cluster/TrainTracker-App-TrainTrackerService --service arn:aws:ecs:us-east-1:237069437847:service/TrainTracker-App-TrainTrackerService/TrainTracker-App-ServiceD69D759B-wYyaGgjovlBw --force-new-deployment --region us-east-1
+aws ecs update-service --cluster TrainTracker-App-TrainTrackerService --service $SERVICE_NAME --force-new-deployment --region $AWS_REGION
 
 echo "ECS service updated successfully. The new image will be deployed shortly."
 echo "You can check the status of the deployment in the AWS ECS console."
