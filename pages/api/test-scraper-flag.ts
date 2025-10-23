@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { verifyToken } from '../../app/utils/auth-client';
+import { verifyToken } from '../../app/utils/auth-server';
 import { scrapeTransitDocsTrainStatus } from '../../app/utils/transitdocs-scraper';
 import { TrainStatus } from '../../app/types';
 

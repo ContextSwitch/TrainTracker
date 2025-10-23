@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { verifyToken } from '../../../app/utils/auth-client';
+import { verifyToken } from '../../../app/utils/auth-server';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

@@ -18,7 +18,7 @@ RUN npm config set legacy-peer-deps true
 # Install all dependencies (including dev dependencies needed for build)
 RUN npm ci --legacy-peer-deps --no-audit --no-fund
 
-# Copy source code
+# Copy source code (.dockerignore will exclude unnecessary files)
 COPY . .
 
 # Build the application

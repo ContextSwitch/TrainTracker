@@ -42,6 +42,11 @@ push-image.sh
 deploy-with-ssl.sh
 SSL_SETUP.md
 
+# Scripts and deployment files
+scripts/
+cleanup-aws.sh
+*.sh
+
 # Test files (optional - remove if you want tests to run on Render)
 tests/
 test-*.js

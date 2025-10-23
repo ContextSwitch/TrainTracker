@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { appConfig } from '../../../app/config';
-import { verifyToken } from '../../../app/utils/auth-client';
+import { verifyToken } from '../../../app/utils/auth-server';
 import { AppConfig } from '../../../app/types';
 
 type ConfigResponse = {
