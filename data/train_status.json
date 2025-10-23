@@ -1,0 +1,96 @@
+{
+  "3": [
+    {
+      "trainId": "3",
+      "instanceId": 202506193,
+      "currentLocation": "Chicago, IL",
+      "nextStation": "Chicago, IL",
+      "status": "On Time",
+      "lastUpdated": "2025-06-19T19:10:00.000Z",
+      "estimatedArrival": 1750361100,
+      "scheduledTime": 1750361100,
+      "delayMinutes": 0,
+      "timezone": "America/Chicago",
+      "direction": "westbound",
+      "isNext": true,
+      "date": "2025-06-19"
+    },
+    {
+      "trainId": "3",
+      "instanceId": 202506183,
+      "currentLocation": "Dodge City, KS",
+      "nextStation": "Garden City, KS",
+      "status": "Delayed",
+      "lastUpdated": "2025-06-19T11:50:49.000Z",
+      "estimatedArrival": 1750334640,
+      "scheduledTime": 1750329780,
+      "delayMinutes": 81,
+      "timezone": "America/Chicago",
+      "direction": "westbound",
+      "isNext": false,
+      "date": "2025-06-18"
+    },
+    {
+      "trainId": "3",
+      "instanceId": 202506173,
+      "currentLocation": "Needles, CA",
+      "nextStation": "Barstow, CA",
+      "status": "Delayed",
+      "lastUpdated": "2025-06-19T11:50:48.000Z",
+      "estimatedArrival": 1750337460,
+      "scheduledTime": 1750329480,
+      "delayMinutes": 133,
+      "timezone": "America/Los_Angeles",
+      "direction": "westbound",
+      "isNext": false,
+      "date": "2025-06-17"
+    }
+  ],
+  "4": [
+    {
+      "trainId": "4",
+      "instanceId": 202506194,
+      "currentLocation": "Los Angeles, CA",
+      "nextStation": "Los Angeles, CA",
+      "status": "On Time",
+      "lastUpdated": "2025-06-20T00:04:00.000Z",
+      "estimatedArrival": 1750378740,
+      "scheduledTime": 1750378740,
+      "delayMinutes": 0,
+      "timezone": "America/Los_Angeles",
+      "direction": "eastbound",
+      "isNext": true,
+      "date": "2025-06-19"
+    },
+    {
+      "trainId": "4",
+      "instanceId": 202506184,
+      "currentLocation": "Flagstaff, AZ",
+      "nextStation": "Winslow, AZ",
+      "status": "Delayed",
+      "lastUpdated": "2025-06-19T11:50:49.000Z",
+      "estimatedArrival": 1750335000,
+      "scheduledTime": 1750334340,
+      "delayMinutes": 11,
+      "timezone": "America/Phoenix",
+      "direction": "eastbound",
+      "isNext": false,
+      "date": "2025-06-18"
+    },
+    {
+      "trainId": "4",
+      "instanceId": 202506174,
+      "currentLocation": "Topeka, KS",
+      "nextStation": "Lawrence, KS",
+      "status": "Delayed",
+      "lastUpdated": "2025-06-19T11:50:48.000Z",
+      "estimatedArrival": 1750335060,
+      "scheduledTime": 1750326720,
+      "delayMinutes": 139,
+      "timezone": "America/Chicago",
+      "direction": "eastbound",
+      "isNext": false,
+      "date": "2025-06-17"
+    }
+  ]
+}
