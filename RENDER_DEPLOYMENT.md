@@ -47,8 +47,10 @@ ss
 
 If the Node.js runtime fails, try Docker:
 1. Change **Runtime** to "Docker"
-2. Set **Dockerfile Path** to `./Dockerfile.render` (alternative Dockerfile)
+2. Set **Dockerfile Path** to `./Dockerfile.render` (recommended) or `./Dockerfile`
 3. Keep other settings the same
+
+**Note**: The Docker build issue has been fixed - dev dependencies are now included during build and removed after to keep the final image small.
 
 ## Step 3: Configure Custom Domain
 

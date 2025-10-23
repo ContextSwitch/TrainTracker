@@ -10,7 +10,7 @@ RUN apk --no-cache add curl
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies with verbose logging
+# Install all dependencies (including dev dependencies needed for build)
 RUN npm ci --legacy-peer-deps --verbose
 
 # Copy the rest of the application
@@ -18,6 +18,9 @@ COPY . .
 
 # Build the application with verbose logging
 RUN npm run build --verbose
+
+# Clean up dev dependencies after build to reduce image size
+RUN npm prune --production
 
 # Expose the port the app runs on
 EXPOSE 10000
