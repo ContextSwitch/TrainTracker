@@ -21,19 +21,42 @@ export class SchedulerStack extends cdk.Stack {
       retention: logs.RetentionDays.ONE_WEEK
     });
 
+    // Create IAM role for Lambda with ECS permissions
+    const lambdaRole = new iam.Role(this, 'CronLambdaRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
+      ]
+    });
+    
+    // Add ECS permissions to the role
+    lambdaRole.addToPolicy(new iam.PolicyStatement({
+      actions: [
+        'ecs:UpdateService',
+        'ecs:DescribeServices',
+        'ecs:DescribeClusters'
+      ],
+      resources: ['*']
+    }));
+
     // Create Lambda function
     const cronLambda = new lambda.Function(this, 'CronLambda', {
       functionName: 'traintracker-cron-lambda',
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
+      role: lambdaRole,
       code: lambda.Code.fromInline(`
         const https = require('https');
         const http = require('http');
-
+        const AWS = require('aws-sdk');
+        
         exports.handler = async (event) => {
           console.log('TrainTracker cron job started');
           
           const apiUrl = process.env.API_URL;
+          const clusterName = process.env.ECS_CLUSTER_NAME;
+          const serviceName = process.env.ECS_SERVICE_NAME;
+          
           console.log(\`Calling API URL: \${apiUrl}\`);
           
           try {
@@ -66,6 +89,44 @@ export class SchedulerStack extends cdk.Stack {
             });
             
             console.log('API response:', response);
+            
+            // If ECS cluster name is provided, discover and refresh the service
+            if (clusterName) {
+              console.log(\`Discovering services in cluster: \${clusterName}\`);
+              
+              try {
+                const ecs = new AWS.ECS();
+                
+                // List services in the cluster
+                const listServicesResponse = await ecs.listServices({
+                  cluster: clusterName
+                }).promise();
+                
+                if (listServicesResponse.serviceArns && listServicesResponse.serviceArns.length > 0) {
+                  // Get the first service ARN
+                  const serviceArn = listServicesResponse.serviceArns[0];
+                  const serviceName = serviceArn.split('/').pop();
+                  
+                  console.log(\`Found service: \${serviceName}\`);
+                  console.log(\`Refreshing ECS service: \${serviceName} in cluster: \${clusterName}\`);
+                  
+                  // Force a new deployment of the service
+                  const updateResponse = await ecs.updateService({
+                    cluster: clusterName,
+                    service: serviceName,
+                    forceNewDeployment: true
+                  }).promise();
+                  
+                  console.log('ECS service refresh initiated successfully:', updateResponse);
+                } else {
+                  console.log('No services found in the cluster');
+                }
+              } catch (ecsError) {
+                console.error('Error refreshing ECS service:', ecsError);
+                // Continue execution even if ECS refresh fails
+              }
+            }
+            
             return {
               statusCode: 200,
               body: JSON.stringify({ message: 'Cron job executed successfully' })
@@ -79,10 +140,11 @@ export class SchedulerStack extends cdk.Stack {
           }
         };
       `),
-      timeout: cdk.Duration.seconds(30),
+      timeout: cdk.Duration.seconds(60), // Increased timeout to allow for ECS API call
       memorySize: 128,
       environment: {
-        API_URL: props.apiUrl
+        API_URL: props.apiUrl,
+        ECS_CLUSTER_NAME: 'TrainTracker-App-TrainTrackerService'
       },
       logGroup: logGroup
     });

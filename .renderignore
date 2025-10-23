@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+
+# Development files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage/
+.nyc_output/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# AWS infrastructure (not needed for Render)
+infrastructure/
+buildspec.yml
+appspec.yml
+appspec_template.yml
+taskdef.json
+taskdef_template.json
+push-image.sh
+deploy-with-ssl.sh
+SSL_SETUP.md
+
+# Test files (optional - remove if you want tests to run on Render)
+tests/
+test-*.js
+test-*.html
+*.test.js
+*.test.ts
+*.test.tsx
+.mocharc.js
+
+# Documentation
+README.md

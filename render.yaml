@@ -1,0 +1,71 @@
+services:
+  # Main web service
+  - type: web
+    name: traintracker-web
+    runtime: docker
+    repo: https://github.com/ContextSwitch/TrainTracker.git
+    branch: main
+    dockerfilePath: ./Dockerfile
+    numInstances: 1
+    plan: starter
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        value: traintracker-admin-secret
+      - key: ADMIN_PASSWORD
+        value: WhereDidTheSunGo
+    domains:
+      - chiefjourney.com
+      - www.chiefjourney.com
+
+  # Cron job to replace AWS Lambda
+  - type: cron
+    name: traintracker-cron
+    runtime: node
+    repo: https://github.com/ContextSwitch/TrainTracker.git
+    branch: main
+    schedule: "*/10 * * * *"  # Every 10 minutes
+    buildCommand: npm ci --legacy-peer-deps
+    startCommand: node -e "
+      const https = require('https');
+      const http = require('http');
+      
+      console.log('TrainTracker cron job started');
+      
+      // Use the web service URL - Render will provide this automatically
+      const apiUrl = process.env.RENDER_EXTERNAL_URL ? 
+        process.env.RENDER_EXTERNAL_URL + '/api/cron' : 
+        'https://chiefjourney.com/api/cron';
+      
+      console.log('Calling API URL:', apiUrl);
+      
+      const client = apiUrl.startsWith('https') ? https : http;
+      
+      const req = client.get(apiUrl, (res) => {
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', () => {
+          console.log('API response status:', res.statusCode);
+          console.log('API response:', data);
+          process.exit(0);
+        });
+      });
+      
+      req.on('error', (error) => {
+        console.error('Error calling API:', error);
+        process.exit(1);
+      });
+      
+      req.setTimeout(50000, () => {
+        console.error('Request timeout');
+        req.destroy();
+        process.exit(1);
+      });
+    "
+    envVars:
+      - key: NODE_ENV
+        value: production
