@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyToken } from './app/utils/auth-client';
+import { verifyToken } from './app/utils/auth-server';
 
 export function middleware(request: NextRequest) {
   // Debug request info
