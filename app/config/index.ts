@@ -1,4 +1,171 @@
-import { AppConfig } from '../types';
+import { AppConfig, RailcamStation } from '../types';
+
+// Default stations configuration (client-side safe) - All Southwest Chief stops
+const DEFAULT_STATIONS: RailcamStation[] = [
+  // Currently enabled railcam stations
+  {
+    name: 'Fullerton',
+    youtubeLink: 'https://railstream.net/live-cameras/item/fullerton-guest',
+    enabled: true
+  },
+  {
+    name: 'Barstow',
+    youtubeLink: 'https://www.youtube.com/watch?v=_DUQnPjPC_8',
+    enabled: true
+  },
+  {
+    name: 'Kingman',
+    youtubeLink: 'https://www.youtube.com/watch?v=h8-J3JGU7g4',
+    enabled: true
+  },
+  {
+    name: 'Needles',
+    youtubeLink: 'https://www.youtube.com/watch?v=sg3kp4pn9fU',
+    enabled: true
+  },
+  {
+    name: 'Flagstaff',
+    youtubeLink: 'https://www.youtube.com/watch?v=7xdHH9KMSVk',
+    enabled: true
+  },
+  {
+    name: 'Winslow',
+    youtubeLink: 'https://www.youtube.com/watch?v=NzOG3U9LZMw',
+    enabled: true
+  },
+  {
+    name: 'Gallup',
+    youtubeLink: 'https://www.youtube.com/watch?v=hbmeqWdDLjk',
+    enabled: true
+  },
+  {
+    name: 'Las Vegas',
+    youtubeLink: 'https://www.youtube.com/watch?v=BgmZJ-NUqiY',
+    enabled: true
+  },
+  {
+    name: 'Lawrence',
+    youtubeLink: 'https://www.youtube.com/watch?v=PAU2JtU4WCo',
+    enabled: true
+  },
+  {
+    name: 'Kansas City',
+    youtubeLink: 'https://www.youtube.com/watch?v=u6UbwlQQ3QU',
+    enabled: true
+  },
+  {
+    name: 'La Plata',
+    youtubeLink: 'https://www.youtube.com/watch?v=X-ir2KfXMX0',
+    enabled: true
+  },
+  {
+    name: 'Fort Madison',
+    youtubeLink: 'https://www.youtube.com/watch?v=L6eG4ahJc_Q',
+    enabled: true
+  },
+  {
+    name: 'Galesburg',
+    youtubeLink: 'https://www.youtube.com/watch?v=On1MRt0NqFs',
+    enabled: true
+  },
+  {
+    name: 'Mendota',
+    youtubeLink: 'https://www.youtube.com/watch?v=PfL_zIxDIw0',
+    enabled: true
+  },
+  
+  // Additional Southwest Chief stops (disabled by default, can be enabled for future railcams)
+  {
+    name: 'Los Angeles',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Riverside',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'San Bernardino',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Victorville',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Albuquerque',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Lamy',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Raton',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Trinidad',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'La Junta',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Lamar',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Garden City',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Dodge City',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Hutchinson',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Newton',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Topeka',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Princeton',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Naperville',
+    youtubeLink: '',
+    enabled: false
+  },
+  {
+    name: 'Chicago',
+    youtubeLink: '',
+    enabled: false
+  }
+];
 
 // Application configuration
 export const appConfig: AppConfig = {
@@ -17,65 +184,8 @@ export const appConfig: AppConfig = {
   // Using TransitDocs API for train data
   scraperType: 'transitdocs',
   
-  // List of stations with railcams along the Southwest Chief route
-  stations: [
-    {
-      name: 'Fullerton',
-      youtubeLink: 'https://railstream.net/live-cameras/item/fullerton-guest'
-    },
-    {
-      name: 'Barstow',
-      youtubeLink: 'https://www.youtube.com/watch?v=_DUQnPjPC_8'
-    },
-    {
-      name: 'Kingman',
-      youtubeLink: 'https://www.youtube.com/watch?v=h8-J3JGU7g4'
-    },
-    {
-      name: 'Needles',
-      youtubeLink: 'https://www.youtube.com/watch?v=sg3kp4pn9fU'
-    },
-    {
-      name: 'Flagstaff',
-      youtubeLink: 'https://www.youtube.com/watch?v=7xdHH9KMSVk'
-    },
-    {
-      name: 'Winslow',
-      youtubeLink: 'https://www.youtube.com/watch?v=NzOG3U9LZMw'
-    },
-    {
-      name: 'Gallup',
-      youtubeLink: 'https://www.youtube.com/watch?v=hbmeqWdDLjk'
-    },
-    {
-      name: 'Las Vegas',
-      youtubeLink: 'https://www.youtube.com/watch?v=BgmZJ-NUqiY'
-    },
-    {
-      name: 'Lawrence',
-      youtubeLink: 'https://www.youtube.com/watch?v=PAU2JtU4WCo'
-    },
-    {
-      name: 'Kansas City',
-      youtubeLink: 'https://www.youtube.com/watch?v=u6UbwlQQ3QU'
-    },
-    {
-      name: 'La Plata',
-      youtubeLink: 'https://www.youtube.com/watch?v=X-ir2KfXMX0'
-    },
-    {
-      name: 'Fort Madison',
-      youtubeLink: 'https://www.youtube.com/watch?v=L6eG4ahJc_Q'
-    },
-    {
-      name: 'Galesburg',
-      youtubeLink: 'https://www.youtube.com/watch?v=On1MRt0NqFs'
-    },
-    {
-      name: 'Mendota',
-      youtubeLink: 'https://www.youtube.com/watch?v=UE63jwH4XSs'
-    }
-  ],
+  // Use default stations (dynamic loading happens via API)
+  stations: DEFAULT_STATIONS,
   
   // URLs for the Southwest Chief train status pages
   trainUrls: {
@@ -83,6 +193,11 @@ export const appConfig: AppConfig = {
     '4': 'https://dixielandsoftware.net/cgi-bin/gettrain.pl?seltrain=4'  // West to East
   }
 };
+
+// Function to update stations configuration (stations are now loaded via API)
+export function updateStations(stations: RailcamStation[]): void {
+  appConfig.stations = stations;
+}
 
 // Helper function to get a station by name
 export function getStationByName(name: string) {

@@ -59,9 +59,9 @@ export function checkTrainApproaching(trainStatus: Partial<TrainStatus>): TrainA
     return notApproaching;
   }
   
-  // Check if the next station has a railcam
+  // Check if the next station has a railcam and is enabled
   const station = getStationByName(trainStatus.nextStation);
-  if (!station) {
+  if (!station || station.enabled === false) {
     return notApproaching;
   }
   
@@ -150,10 +150,10 @@ function processSingleTrainStatus(trainStatus: Partial<TrainStatus> & { directio
     return null;
   }
   
-  // Look for the next station with a railcam
+  // Look for the next station with a railcam that is enabled
   for (let i = currentIndex; i < route.length; i++) {
     const station = getStationByName(route[i]);
-    if (station) {
+    if (station && station.enabled !== false) {
       // Get the time zone offset for the station (not currently used)
       // const timeZoneOffset = getStationTimeZoneOffset(route[i]);
       

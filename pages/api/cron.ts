@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
-import { appConfig } from '../../app/config';
+import { appConfig, updateStations } from '../../app/config';
 import { scrapeTrainStatus } from '../../app/utils/scraper';
 import { TrainStatus, CurrentStatus, TrainApproaching } from '../../app/types/index';
 import { checkTrainApproaching } from '../../app/utils/predictions';
+import { loadStationsFromFile } from '../../app/utils/server-config';
 
 
 type CronResponse = {
@@ -56,6 +57,12 @@ export default async function handler(
   try {
     // Update the last run time
     lastRun = now;
+    
+    // Load the latest stations configuration from JSON file
+    console.log('Loading stations configuration from JSON file...');
+    const latestStations = loadStationsFromFile();
+    updateStations(latestStations);
+    console.log(`Loaded ${latestStations.length} stations from configuration`);
     
     // Use the scraper to get real data
     let train3Statuses: TrainStatus[] = [];

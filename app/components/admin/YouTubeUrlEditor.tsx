@@ -6,6 +6,7 @@ import YouTubePlayer from '../YouTubePlayer';
 interface Station {
   name: string;
   youtubeLink: string;
+  enabled?: boolean;
 }
 
 interface YouTubeUrlEditorProps {
@@ -26,8 +27,22 @@ const YouTubeUrlEditor: React.FC<YouTubeUrlEditorProps> = ({ stations, onSave })
     setEditedStations(newStations);
   };
 
+  const handleEnabledChange = (index: number, enabled: boolean) => {
+    const newStations = [...editedStations];
+    newStations[index] = { ...newStations[index], enabled };
+    setEditedStations(newStations);
+  };
+
   const handlePreview = (url: string) => {
     setPreviewUrl(url);
+  };
+
+  const handleBulkToggle = (enabled: boolean) => {
+    const newStations = editedStations.map(station => ({
+      ...station,
+      enabled
+    }));
+    setEditedStations(newStations);
   };
 
   const handleSave = async () => {
@@ -49,6 +64,30 @@ const YouTubeUrlEditor: React.FC<YouTubeUrlEditorProps> = ({ stations, onSave })
 
   return (
     <div className="space-y-6">
+      {/* Bulk Actions */}
+      <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+        <div>
+          <h3 className="text-sm font-medium text-gray-900 dark:text-white">Bulk Actions</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Quickly enable or disable all stations
+          </p>
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleBulkToggle(true)}
+            className="rounded-md bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700"
+          >
+            Enable All
+          </button>
+          <button
+            onClick={() => handleBulkToggle(false)}
+            className="rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700"
+          >
+            Disable All
+          </button>
+        </div>
+      </div>
+
       <div className="flex flex-col lg:flex-row lg:space-x-6">
         <div className="w-full lg:w-1/2">
           <div className="overflow-hidden rounded-lg border border-gray-200 shadow dark:border-gray-700">
@@ -57,6 +96,9 @@ const YouTubeUrlEditor: React.FC<YouTubeUrlEditorProps> = ({ stations, onSave })
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     Station
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    Status
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     YouTube URL
@@ -68,22 +110,37 @@ const YouTubeUrlEditor: React.FC<YouTubeUrlEditorProps> = ({ stations, onSave })
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:clr-surface-a0">
                 {editedStations.map((station, index) => (
-                  <tr key={station.name}>
+                  <tr key={station.name} className={station.enabled === false ? 'opacity-60' : ''}>
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                       {station.name}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={station.enabled !== false}
+                          onChange={(e) => handleEnabledChange(index, e.target.checked)}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                        />
+                        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                          {station.enabled !== false ? 'Enabled' : 'Disabled'}
+                        </span>
+                      </label>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       <input
                         type="text"
                         value={station.youtubeLink}
                         onChange={(e) => handleUrlChange(index, e.target.value)}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        disabled={station.enabled === false}
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
                       />
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                       <button
                         onClick={() => handlePreview(station.youtubeLink)}
-                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                        disabled={station.enabled === false || !station.youtubeLink}
+                        className="text-blue-600 hover:text-blue-900 disabled:text-gray-400 dark:text-blue-400 dark:hover:text-blue-300 dark:disabled:text-gray-600"
                       >
                         Preview
                       </button>
@@ -94,7 +151,10 @@ const YouTubeUrlEditor: React.FC<YouTubeUrlEditorProps> = ({ stations, onSave })
             </table>
           </div>
 
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-between">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {editedStations.filter(s => s.enabled !== false).length} of {editedStations.length} stations enabled
+            </div>
             <button
               onClick={handleSave}
               disabled={saving}

@@ -2,22 +2,16 @@
   "train3": {
     "approaching": true,
     "station": {
-      "name": "Lawrence",
-      "youtubeLink": "https://www.youtube.com/watch?v=PAU2JtU4WCo"
+      "name": "Mendota",
+      "youtubeLink": "https://www.youtube.com/watch?v=PfL_zIxDIw0",
+      "enabled": true
     },
-    "eta": "2025-06-20T00:20:08.734Z",
+    "eta": "2025-10-27T23:53:52.287Z",
     "minutesAway": 0,
-    "youtubeLink": "https://www.youtube.com/embed/PAU2JtU4WCo?autoplay=1"
+    "youtubeLink": "https://www.youtube.com/embed/PfL_zIxDIw0?autoplay=1"
   },
   "train4": {
-    "approaching": true,
-    "station": {
-      "name": "Winslow",
-      "youtubeLink": "https://www.youtube.com/watch?v=NzOG3U9LZMw"
-    },
-    "eta": 1750335000,
-    "minutesAway": -29141626,
-    "youtubeLink": "https://www.youtube.com/embed/NzOG3U9LZMw?autoplay=1"
+    "approaching": false
   },
-  "lastUpdated": "2025-06-20T00:20:08.734Z"
+  "lastUpdated": "2025-10-27T23:53:52.287Z"
 }

@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { TrainStatus } from '../types';
-import { getStationByName } from '../config';
+import { TrainStatus, RailcamStation } from '../types';
 
 interface RouteStationsProps {
   onSelectStation: (trainId: string, stationName: string) => void;
@@ -26,6 +25,75 @@ const RouteStations: React.FC<RouteStationsProps> = ({
   
   // Check if we're on mobile using window width
   const [isMobile, setIsMobile] = useState(false);
+  
+  // State to store the stations configuration
+  const [stations, setStations] = useState<RailcamStation[]>([]);
+  
+  // Function to get a station by name from the loaded stations
+  const getStationByName = (name: string): RailcamStation | null => {
+    if (!name) return null;
+    
+    // Clean up the name by removing state abbreviations and commas
+    const cleanName = name.replace(/,\s*[A-Z]{2}$/, '').trim();
+    
+    // Special case for Kansas City
+    if (cleanName === 'Kansas City') {
+      const kansasCity = stations.find(station => 
+        station.name.startsWith('Kansas City')
+      );
+      if (kansasCity) {
+        return kansasCity;
+      }
+    }
+    
+    // First try exact match
+    const exactMatch = stations.find(station => 
+      station.name.toLowerCase() === cleanName.toLowerCase()
+    );
+    
+    if (exactMatch) {
+      return exactMatch;
+    }
+    
+    // If no exact match, try partial match with the city name only
+    // This will match "Kansas City, MO" with "Kansas City - Union Station"
+    const cityName = cleanName.split(' - ')[0].trim();
+    const partialMatch = stations.find(station => {
+      const stationCity = station.name.split(' - ')[0].trim().toLowerCase();
+      return stationCity === cityName.toLowerCase() || 
+             stationCity.includes(cityName.toLowerCase()) || 
+             cityName.toLowerCase().includes(stationCity);
+    });
+    
+    if (partialMatch) {
+      return partialMatch;
+    }
+    
+    // If still no match, try a more general partial match
+    return stations.find(station => 
+      station.name.toLowerCase().includes(cleanName.toLowerCase()) ||
+      cleanName.toLowerCase().includes(station.name.toLowerCase())
+    ) || null;
+  };
+  
+  // Load stations configuration on component mount
+  useEffect(() => {
+    const loadStations = async () => {
+      try {
+        const response = await fetch('/api/stations-config');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.stations) {
+            setStations(data.stations);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading stations configuration:', error);
+      }
+    };
+    
+    loadStations();
+  }, []);
   
   // Effect to check screen size and set mobile state
   useEffect(() => {
@@ -102,7 +170,7 @@ const RouteStations: React.FC<RouteStationsProps> = ({
           <ul className="space-y-2">
           {route.map((stationName) => {
             const station = getStationByName(stationName);
-            const hasRailcam = !!station;
+            const hasRailcam = !!station && station.enabled !== false;
             const isSelected = selectedStation === stationName;
             
             // Check if this station is the next stop for any train instance

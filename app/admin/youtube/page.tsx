@@ -7,6 +7,7 @@ import AdminAuthCheck from '../../components/admin/AdminAuthCheck';
 interface Station {
   name: string;
   youtubeLink: string;
+  enabled?: boolean;
 }
 
 export default function YouTubeManagementPage() {
@@ -24,16 +25,20 @@ export default function YouTubeManagementPage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/admin/youtube');
+      const response = await fetch('/api/admin/stations');
       
       if (!response.ok) {
-        throw new Error('Failed to fetch YouTube URLs');
+        throw new Error('Failed to fetch stations configuration');
       }
       
       const data = await response.json();
-      setStations(data.stations);
+      if (data.success) {
+        setStations(data.stations);
+      } else {
+        throw new Error(data.error || 'Failed to fetch stations');
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while fetching YouTube URLs');
+      setError(err instanceof Error ? err.message : 'An error occurred while fetching stations');
       console.error('Error fetching stations:', err);
     } finally {
       setLoading(false);
@@ -41,7 +46,7 @@ export default function YouTubeManagementPage() {
   };
 
   const handleSaveStations = async (updatedStations: Station[]) => {
-    const response = await fetch('/api/admin/youtube', {
+    const response = await fetch('/api/admin/stations', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -51,11 +56,16 @@ export default function YouTubeManagementPage() {
     
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to update YouTube URLs');
+      throw new Error(errorData.error || 'Failed to update stations configuration');
+    }
+    
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to update stations configuration');
     }
     
     // Update the local state with the new stations
-    setStations(updatedStations);
+    setStations(result.stations);
   };
 
   return (

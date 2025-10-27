@@ -22,6 +22,7 @@ export interface TrainStatus {
 export interface RailcamStation {
   name: string;             // Station name
   youtubeLink: string;      // YouTube embed link
+  enabled?: boolean;        // Whether the station is enabled (defaults to true)
   coordinates?: {           // Optional coordinates for mapping
     lat: number;
     lng: number;

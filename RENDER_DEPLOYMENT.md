@@ -22,6 +22,8 @@ git push origin main
 ss
 ## Step 2: Create Web Service on Render
 
+**RECOMMENDED: Use Node.js Runtime (More Reliable)**
+
 1. Go to [Render Dashboard](https://dashboard.render.com)
 2. Click "New +" → "Web Service"
 3. Connect your GitHub repository: `ContextSwitch/TrainTracker`
@@ -29,7 +31,7 @@ ss
    - **Name**: `traintracker-web`
    - **Runtime**: Node
    - **Branch**: main
-   - **Build Command**: `npm ci --legacy-peer-deps && npm run build`
+   - **Build Command**: `npm ci --legacy-peer-deps --include=dev && npm run build`
    - **Start Command**: `npm start`
    - **Plan**: Starter ($7/month)
 
@@ -50,7 +52,18 @@ If the Node.js runtime fails, try Docker:
 2. Set **Dockerfile Path** to `./Dockerfile.render` (recommended) or `./Dockerfile`
 3. Keep other settings the same
 
-**Note**: The Docker build issue has been fixed - dev dependencies are now included during build and removed after to keep the final image small.
+**Note**: Docker builds successfully but may have deployment issues. Node.js runtime is more reliable for Next.js apps.
+
+### Troubleshooting Deployment Issues
+
+If deployment fails after successful build:
+
+1. **Check Render Logs**: Go to your service → "Logs" tab to see startup errors
+2. **Common Issues**:
+   - Port binding: Ensure `PORT=10000` environment variable is set
+   - Missing dependencies: Check if all required packages are installed
+   - File permissions: Docker containers may have permission issues
+3. **Switch to Node.js Runtime**: This is usually more reliable than Docker for Next.js apps
 
 ## Step 3: Configure Custom Domain
 
@@ -113,13 +126,28 @@ If the Node.js runtime fails, try Docker:
 
 5. Click "Create Cron Job"
 
-## Step 5: Test Deployment
+## Step 5: Get Fresh Train Data
+
+**The deployment is working, but you need fresh train data!**
+
+1. **Trigger Initial Data Fetch**: Visit your Render app URL and add `/api/cron` to manually trigger data fetching:
+   ```
+   https://your-app-name.onrender.com/api/cron
+   ```
+   This will fetch current train data and populate the JSON files.
+
+2. **Wait 1-2 minutes** for the data to be processed
+
+3. **Refresh your main app** - you should now see current train data instead of the error
+
+## Step 6: Test Deployment
 
 1. Wait for the web service to deploy (usually 5-10 minutes)
 2. Test the Render URL: `https://traintracker-web.onrender.com`
-3. Verify all functionality:
-   - Home page loads
-   - Train data displays
+3. **Trigger fresh data**: Visit `/api/cron` endpoint first
+4. Verify all functionality:
+   - Home page loads with current train data
+   - Train data displays correctly
    - Admin panel works
    - API endpoints respond
 
