@@ -3,7 +3,7 @@ import sinon from 'sinon';
 import fs from 'fs';
 import path from 'path';
 import { NextApiRequest, NextApiResponse } from 'next';
-import handler from '../../pages/api/cron';
+import handler from '../../pages/api/cron.js';
 import * as scraper from '../../app/utils/scraper';
 import * as transitdocsScraper from '../../app/utils/transitdocs-scraper';
 import * as dixielandScraper from '../../app/utils/dixieland-scraper';

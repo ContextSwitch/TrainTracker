@@ -16,7 +16,8 @@
     "test:integration": "mocha 'tests/integration/**/*.test.{ts,tsx}'",
     "test:unit": "mocha 'tests/utils/**/*.test.{ts,tsx}' 'tests/components/**/*.test.{ts,tsx}'",
     "test:api": "mocha 'tests/api/**/*.test.{ts,tsx}'",
-    "test:safe": "node tests/run-tests.js"
+    "test:safe": "node tests/run-tests.js",
+    "test:all": "npm run test:integration && npm run test:unit && npm run test:api"
   },
   "dependencies": {
     "@types/node-fetch": "^2.6.12",
@@ -31,6 +32,11 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
+    "@babel/preset-typescript": "^7.28.5",
+    "@babel/register": "^7.28.3",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@testing-library/react": "^16.0.1",

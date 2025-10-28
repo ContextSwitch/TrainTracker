@@ -1,16 +1,27 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "types": ["mocha", "chai", "sinon", "node"],
+    "types": ["mocha", "chai", "sinon", "node", "jsdom"],
     "esModuleInterop": true,
-    "module": "commonjs",
+    "allowSyntheticDefaultImports": true,
+    "module": "ESNext",
     "moduleResolution": "node",
+    "target": "ES2020",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "skipLibCheck": true,
     "paths": {
       "@/*": ["../*"]
     }
   },
   "include": [
     "./**/*.ts",
-    "./**/*.tsx"
-  ]
+    "./**/*.tsx",
+    "./**/*.js",
+    "./**/*.jsx"
+  ],
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
 }
