@@ -27,7 +27,8 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   }
   
   // Check if there is a railcam at the next station
-  const hasRailcam = !!getStationByName(trainStatus.nextStation);
+  const station = getStationByName(trainStatus.nextStation);
+  const hasRailcam = !!(station && station.enabled);
   
   // Calculate time-related values using shared utilities
   const actualMinutesAway = ErrorUtils.safeExecute(
