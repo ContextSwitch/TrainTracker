@@ -1,8 +1,16 @@
 import jwt from 'jsonwebtoken';
+import { logger } from './logger';
 
-// Secret key for JWT signing - should be in environment variables in production
-const JWT_SECRET = process.env.JWT_SECRET || 'traintracker-admin-secret';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'WhereDidTheSunGo'; // Default password for development
+// Secret key for JWT signing - REQUIRED in environment variables
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET environment variable is required and must be at least 32 characters long');
+}
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+if (!ADMIN_PASSWORD) {
+  throw new Error('ADMIN_PASSWORD environment variable is required');
+}
 
 // Token expiration time
 const TOKEN_EXPIRATION = '24h';
@@ -17,9 +25,9 @@ export interface AdminUser {
  * Generate a JWT token for an admin user (SERVER-SIDE ONLY)
  */
 export function generateToken(user: AdminUser): string {
-  console.log('Generating token for user:', user);
-  const token = jwt.sign(user, JWT_SECRET, { expiresIn: TOKEN_EXPIRATION });
-  console.log('Token generated successfully');
+  logger.debug('Generating token for admin user', 'AUTH');
+  const token = jwt.sign(user, JWT_SECRET!, { expiresIn: TOKEN_EXPIRATION });
+  logger.debug('Token generated successfully', 'AUTH');
   return token;
 }
 
@@ -28,12 +36,12 @@ export function generateToken(user: AdminUser): string {
  */
 export function verifyToken(token: string): AdminUser | null {
   try {
-    console.log('Verifying token...');
-    const decoded = jwt.verify(token, JWT_SECRET) as AdminUser;
-    console.log('Token verified successfully for user:', decoded.username);
+    logger.debug('Verifying JWT token', 'AUTH');
+    const decoded = jwt.verify(token, JWT_SECRET!) as AdminUser;
+    logger.debug(`Token verified successfully for user: ${decoded.username}`, 'AUTH');
     return decoded;
   } catch (error) {
-    console.error('Error verifying token:', error);
+    logger.error('Error verifying JWT token', 'AUTH', error);
     return null;
   }
 }
@@ -42,11 +50,11 @@ export function verifyToken(token: string): AdminUser | null {
  * Authenticate an admin user with a password (SERVER-SIDE ONLY)
  */
 export function authenticateAdmin(password: string): AdminUser | null {
-  console.log('Authenticating admin with password');
-  if (password === ADMIN_PASSWORD) {
-    console.log('Password matched, authentication successful');
+  logger.debug('Authenticating admin user', 'AUTH');
+  if (password === ADMIN_PASSWORD!) {
+    logger.info('Admin authentication successful', 'AUTH');
     return { username: 'admin', role: 'admin' };
   }
-  console.log('Password did not match');
+  logger.warn('Admin authentication failed - invalid password', 'AUTH');
   return null;
 }

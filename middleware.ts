@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from './app/utils/auth-server';
+import { logger } from './app/utils/logger';
 
 export function middleware(request: NextRequest) {
-  // Debug request info
-  console.log('Middleware processing path:', request.nextUrl.pathname);
+  // Log request info for debugging
+  logger.debug(`Middleware processing path: ${request.nextUrl.pathname}`, 'MIDDLEWARE');
   
   // HTTPS redirect as fallback (primary redirect happens at ALB level)
   if (
@@ -23,7 +24,7 @@ export function middleware(request: NextRequest) {
     (request.nextUrl.pathname.startsWith('/api/') && 
      !request.nextUrl.pathname.startsWith('/api/admin/'))
   ) {
-    console.log('Skipping auth check for:', request.nextUrl.pathname);
+    logger.debug(`Skipping auth check for: ${request.nextUrl.pathname}`, 'MIDDLEWARE');
     return NextResponse.next();
   }
   
@@ -32,20 +33,20 @@ export function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/api/admin/data/') ||
     request.nextUrl.pathname === '/api/admin/check-auth'
   ) {
-    console.log('Skipping auth check for admin data API:', request.nextUrl.pathname);
+    logger.debug(`Skipping auth check for admin data API: ${request.nextUrl.pathname}`, 'MIDDLEWARE');
     return NextResponse.next();
   }
 
   // Check for admin routes
   if (request.nextUrl.pathname.startsWith('/admin')) {
-    console.log('Checking auth for admin route:', request.nextUrl.pathname);
+    logger.debug(`Checking auth for admin route: ${request.nextUrl.pathname}`, 'MIDDLEWARE');
     
     // Check if this is a direct access with auth param (from login redirect)
     const searchParams = request.nextUrl.searchParams;
     const hasAuthParam = searchParams.get('auth') === 'true';
     
     if (hasAuthParam) {
-      console.log('Direct access with auth param, allowing access');
+      logger.debug('Direct access with auth param, allowing access', 'MIDDLEWARE');
       // Create a new URL without the auth parameter for cleaner URLs
       const cleanUrl = new URL(request.nextUrl.pathname, request.url);
       // Keep other query params except 'auth'
@@ -63,20 +64,20 @@ export function middleware(request: NextRequest) {
     const token = request.cookies.get('admin_token')?.value;
     
     // Debug token
-    console.log('Middleware checking token:', token ? 'Token exists' : 'No token');
+    logger.debug(`Middleware checking token: ${token ? 'Token exists' : 'No token'}`, 'MIDDLEWARE');
     
     // Check for auth header (set by client-side code when using localStorage)
     const authHeader = request.headers.get('x-admin-auth');
     
     // If we have an auth header, allow access immediately
     if (authHeader === 'true') {
-      console.log('Found valid auth header, allowing access');
+      logger.debug('Found valid auth header, allowing access', 'MIDDLEWARE');
       return NextResponse.next();
     }
     
     // If no token and no auth header, redirect to login
     if (!token) {
-      console.log('No token found in cookies and no auth header, redirecting to login');
+      logger.debug('No token found in cookies and no auth header, redirecting to login', 'MIDDLEWARE');
       // Add cache busting parameter
       const loginUrl = new URL('/admin/login', request.url);
       loginUrl.searchParams.set('t', Date.now().toString());
@@ -86,14 +87,14 @@ export function middleware(request: NextRequest) {
     try {
       const user = verifyToken(token);
       if (!user) {
-        console.log('Invalid token, redirecting to login');
+        logger.warn('Invalid token, redirecting to login', 'MIDDLEWARE');
         // Add cache busting parameter
         const loginUrl = new URL('/admin/login', request.url);
         loginUrl.searchParams.set('t', Date.now().toString());
         return NextResponse.redirect(loginUrl);
       }
       
-      console.log('Valid token for user:', user.username);
+      logger.debug(`Valid token for user: ${user.username}`, 'MIDDLEWARE');
       
       // Add the user to the request headers for potential use in the application
       const requestHeaders = new Headers(request.headers);
@@ -106,7 +107,7 @@ export function middleware(request: NextRequest) {
         },
       });
     } catch (error) {
-      console.error('Token verification error:', error);
+      logger.error('Token verification error', 'MIDDLEWARE', error);
       // Add cache busting parameter
       const loginUrl = new URL('/admin/login', request.url);
       loginUrl.searchParams.set('t', Date.now().toString());

@@ -1,5 +1,6 @@
 import { TrainStatus } from '../types';
 import { scrapeTransitDocsTrainStatus } from './transitdocs-scraper';
+import { logger } from './logger';
 
 /**
  * Scrapes train status data using the TransitDocs API
@@ -9,10 +10,12 @@ import { scrapeTransitDocsTrainStatus } from './transitdocs-scraper';
  */
 export async function scrapeTrainStatus(url: string, trainId: string): Promise<TrainStatus[]> {
   try {
-    console.log(`Scraping train status for train #${trainId} from TransitDocs API`);
-    return await scrapeTransitDocsTrainStatus(trainId);
+    logger.scrapeStart(trainId, 'TransitDocs API');
+    const result = await scrapeTransitDocsTrainStatus(trainId);
+    logger.scrapeSuccess(trainId, result.length);
+    return result;
   } catch (error) {
-    console.error(`Error scraping train status for train #${trainId}:`, error);
+    logger.scrapeError(trainId, error);
     return [];
   }
 }

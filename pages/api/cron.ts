@@ -6,6 +6,8 @@ import { scrapeTrainStatus } from '../../app/utils/scraper';
 import { TrainStatus, CurrentStatus, TrainApproaching } from '../../app/types/index';
 import { checkTrainApproaching } from '../../app/utils/predictions';
 import { loadStationsFromFile } from '../../app/utils/server-config';
+import { logger } from '../../app/utils/logger';
+import { TrainStatusUtils } from '../../app/utils/train-helpers';
 
 
 type CronResponse = {
@@ -15,10 +17,7 @@ type CronResponse = {
 };
 
 // Initialize logging
-const initLog = () => {
-  console.log('Cron API initialized');
-};
-initLog();
+logger.info('Cron API initialized', 'CRON');
 
 // Track the last time the cron job was run
 let lastRun: Date | null = null;
@@ -32,7 +31,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<CronResponse>
 ) {
-  console.log('in cron')
+  logger.apiRequest('GET', '/api/cron');
+  
   // Only allow GET requests
   if (req.method !== 'GET') {
     res.status(405).end();
@@ -46,7 +46,7 @@ export default async function handler(
   const forceUpdate = req.query.force === 'true';
   
   if (!forceUpdate && lastRun && (now.getTime() - lastRun.getTime()) < 15 * 60 * 1000) {
-    console.log('skipping due to recent update')
+    logger.info('Skipping update - last update was less than 15 minutes ago', 'CRON');
     return res.status(200).json({
       success: true,
       message: 'Skipped update - last update was less than 15 minutes ago',
@@ -59,29 +59,29 @@ export default async function handler(
     lastRun = now;
     
     // Load the latest stations configuration from JSON file
-    console.log('Loading stations configuration from JSON file...');
+    logger.info('Loading stations configuration from JSON file', 'CRON');
     const latestStations = loadStationsFromFile();
     updateStations(latestStations);
-    console.log(`Loaded ${latestStations.length} stations from configuration`);
+    logger.info(`Loaded ${latestStations.length} stations from configuration`, 'CRON');
     
     // Use the scraper to get real data
     let train3Statuses: TrainStatus[] = [];
     let train4Statuses: TrainStatus[] = [];
 
-    console.log(`Scraping data using ${appConfig.scraperType} scraper...`);
+    logger.info(`Scraping data using ${appConfig.scraperType} scraper`, 'CRON');
 
     // Use the scrapeTrainStatus function which will use the appropriate scraper based on config
-    console.log('Scraping data for train #3...');
+    logger.scrapeStart('3', appConfig.scraperType);
     const scraped3 = await scrapeTrainStatus('', '3');
     train3Statuses = scraped3;
-    console.log(`Found ${scraped3.length} statuses for train #3`);
+    logger.scrapeSuccess('3', scraped3.length);
 
-    console.log('Scraping data for train #4...');
+    logger.scrapeStart('4', appConfig.scraperType);
     const scraped4 = await scrapeTrainStatus('', '4');
     train4Statuses = scraped4;
-    console.log(`Found ${scraped4.length} statuses for train #4`);
+    logger.scrapeSuccess('4', scraped4.length);
 
-    console.log('Scraping completed successfully');
+    logger.info('Scraping completed successfully', 'CRON');
 
     // Save the train status data
     saveTrains(train3Statuses);
@@ -97,7 +97,7 @@ export default async function handler(
       lastRun: now.toISOString()
     });
   } catch (error) {
-    console.error('Error in cron job:', error);
+    logger.error('Error in cron job', 'CRON', error);
     res.status(500).json({
       success: false,
       message: `Error updating train data: ${error instanceof Error ? error.message : String(error)}`
@@ -135,7 +135,7 @@ function saveTrainStatus(trainStatus: TrainStatus): void {
       const data = fs.readFileSync(trainStatusFile, 'utf8');
       trainData = JSON.parse(data);
     } catch (error) {
-      console.error('Error reading train status file:', error);
+      logger.error('Error reading train status file', 'CRON', error);
     }
   }
   
@@ -163,15 +163,18 @@ function saveTrainStatus(trainStatus: TrainStatus): void {
   try {
     fs.writeFileSync(trainStatusFile, JSON.stringify(trainData, null, 2));
   } catch (error) {
-    console.error('Error writing train status file:', error);
+    logger.error('Error writing train status file', 'CRON', error);
   }
 }
 
 function removeStaleData(trainData: Record<string, TrainStatus[]>): Record<string, TrainStatus[]> {
-
-
-  trainData[3] = trainData[3].filter(train => train.trainId && train.nextStation != 'Los Angeles, CA');
-  trainData[4] = trainData[4].filter(train => train.trainId && train.nextStation != 'Chicago, IL');
+  // Use shared utility to filter stale data for each train
+  if (trainData['3']) {
+    trainData['3'] = TrainStatusUtils.filterStaleData(trainData['3']);
+  }
+  if (trainData['4']) {
+    trainData['4'] = TrainStatusUtils.filterStaleData(trainData['4']);
+  }
 
   return trainData;
 }
@@ -205,7 +208,7 @@ function updateCurrentStatus(train3Status: TrainStatus, train4Status: TrainStatu
       }
 
     } catch (error) {
-      console.error('Error reading train status file:', error);
+      logger.error('Error reading train status file', 'CRON', error);
     }
   }
   
@@ -241,6 +244,6 @@ function updateCurrentStatus(train3Status: TrainStatus, train4Status: TrainStatu
   try {
     fs.writeFileSync(currentStatusFile, JSON.stringify(currentStatus, null, 2));
   } catch (error) {
-    console.error('Error writing current status file:', error);
+    logger.error('Error writing current status file', 'CRON', error);
   }
 }

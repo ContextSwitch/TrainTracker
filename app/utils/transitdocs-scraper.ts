@@ -3,6 +3,7 @@
  * This module provides functions to scrape train status data from the TransitDocs API
  */
 import { TrainStatus } from '../types';
+import { logger } from './logger';
 
 // Mapping of station codes to full station names
 const stationCodeMap: Record<string, string> = {
@@ -121,7 +122,7 @@ function generateDates(): string[] {
     dates.push(`${year}/${month}/${day}`);
   }
   
-  console.log('dates = ', dates)
+  logger.debug('Generated dates for scraping', 'TRANSITDOCS', { dates });
 
   return dates;
 }
@@ -134,7 +135,7 @@ function generateDates(): string[] {
  */
 async function scrapeTrainStatusForDate(trainNumber: string, dateStr: string): Promise<TrainStatus | null> {
   try {
-    console.log(`Fetching data for train #${trainNumber} on ${dateStr}...`);
+    logger.debug(`Fetching data for train #${trainNumber} on ${dateStr}`, 'TRANSITDOCS');
     
     // Construct the API URL
     const url = `https://asm-backend.transitdocs.com/train/${dateStr}/AMTRAK/${trainNumber}?points=true`;
@@ -148,7 +149,7 @@ async function scrapeTrainStatusForDate(trainNumber: string, dateStr: string): P
     });
     
     if (!response.ok) {
-      console.warn(`TransitDocs API returned status ${response.status} for ${dateStr}: ${response.statusText}`);
+      logger.warn(`TransitDocs API returned status ${response.status} for ${dateStr}: ${response.statusText}`, 'TRANSITDOCS');
       return null;
     }
     
@@ -156,7 +157,7 @@ async function scrapeTrainStatusForDate(trainNumber: string, dateStr: string): P
     
     // Check if we have valid data
     if (!data || !data.stops || !Array.isArray(data.stops) || data.stops.length === 0) {
-      console.warn(`Incomplete data found in TransitDocs API response for ${dateStr}`);
+      logger.warn(`Incomplete data found in TransitDocs API response for ${dateStr}`, 'TRANSITDOCS');
       return null;
     }
     
@@ -165,7 +166,7 @@ async function scrapeTrainStatusForDate(trainNumber: string, dateStr: string): P
     const nextStop = findNextStopAfterLastActual(data.stops);
     
     if (!currentStop || !nextStop) {
-      console.warn(`Could not determine current or next station from TransitDocs API data for ${dateStr}`);
+      logger.warn(`Could not determine current or next station from TransitDocs API data for ${dateStr}`, 'TRANSITDOCS');
       return null;
     }
     
@@ -224,10 +225,10 @@ async function scrapeTrainStatusForDate(trainNumber: string, dateStr: string): P
       date: dateStr.replace(/\//g, '-') // Add date information for display
     };
     
-    console.log(`Successfully fetched data for train #${trainNumber} on ${dateStr}`);
+    logger.debug(`Successfully fetched data for train #${trainNumber} on ${dateStr}`, 'TRANSITDOCS');
     return trainStatus;
   } catch (error) {
-    console.error(`Error fetching data for train #${trainNumber} on ${dateStr}:`, error);
+    logger.error(`Error fetching data for train #${trainNumber} on ${dateStr}`, 'TRANSITDOCS', error);
     return null;
   }
 }
@@ -239,7 +240,7 @@ async function scrapeTrainStatusForDate(trainNumber: string, dateStr: string): P
  */
 export async function scrapeTransitDocsTrainStatus(trainNumber: string): Promise<TrainStatus[]> {
   try {
-    console.log(`Scraping TransitDocs API for train #${trainNumber}...`);
+    logger.info(`Scraping TransitDocs API for train #${trainNumber}`, 'TRANSITDOCS');
     
     // Generate dates for today and the previous two days
     const dates = generateDates();
@@ -248,7 +249,7 @@ export async function scrapeTransitDocsTrainStatus(trainNumber: string): Promise
     const promises = dates.map(dateStr => scrapeTrainStatusForDate(trainNumber, dateStr));
     const results = await Promise.all(promises);
     
-    console.log('results = ', results)
+    logger.debug('TransitDocs API results', 'TRANSITDOCS', { results });
 
     // Filter out null results and sort by date (most recent first)
     const trainStatuses = results.filter(result => result !== null) as TrainStatus[];
@@ -264,10 +265,10 @@ export async function scrapeTransitDocsTrainStatus(trainNumber: string): Promise
       });
     }
     
-    console.log(`Successfully scraped TransitDocs API for train #${trainNumber}, found ${trainStatuses.length} instances`);
+    logger.info(`Successfully scraped TransitDocs API for train #${trainNumber}, found ${trainStatuses.length} instances`, 'TRANSITDOCS');
     return trainStatuses;
   } catch (error) {
-    console.error(`Error scraping TransitDocs API for train #${trainNumber}:`, error);
+    logger.error(`Error scraping TransitDocs API for train #${trainNumber}`, 'TRANSITDOCS', error);
     throw error;
   }
 }

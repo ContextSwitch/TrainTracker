@@ -1,6 +1,7 @@
 import React from 'react';
 import { TrainStatus as TrainStatusType } from '../types';
 import { getStationByName } from '../config';
+import { TimeUtils, TrainStatusUtils, TrainUIUtils, ErrorUtils } from '../utils/train-helpers';
 
 interface TrainInstanceProps {
   trainStatus: TrainStatusType;
@@ -20,69 +21,34 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   onSelectStation,
   instanceId
 }) => {
-  // Check if we have next station information
-  if (!trainStatus.nextStation || !trainStatus.estimatedArrival) {
+  // Check if we have valid train status information
+  if (!TrainStatusUtils.isValidStatus(trainStatus)) {
     return null;
   }
   
   // Check if there is a railcam at the next station
   const hasRailcam = !!getStationByName(trainStatus.nextStation);
   
+  // Calculate time-related values using shared utilities
+  const actualMinutesAway = ErrorUtils.safeExecute(
+    () => TimeUtils.calculateMinutesAway(trainStatus.estimatedArrival),
+    0,
+    'TrainInstance.calculateMinutesAway'
+  );
   
-  // Get the current time and the estimated arrival time
-  const now = new Date();
-  // Handle both string and number types for estimatedArrival
-  const eta = typeof trainStatus.estimatedArrival === 'number' 
-    ? new Date(trainStatus.estimatedArrival * 1000) 
-    : new Date(trainStatus.estimatedArrival);
+  const timeUntilArrival = TimeUtils.formatTimeUntilArrival(actualMinutesAway);
+  const hasPassed = TimeUtils.hasPassed(actualMinutesAway);
+  const displayTime = TimeUtils.formatDisplayTime(trainStatus.estimatedArrival);
   
-  // Calculate the actual minutes away based on the current time and ETA
-  const actualMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
-  
-
-
-  // No need to adjust status based on minutes away
-  // This was causing a TypeScript error
-
-  // Format the time until arrival
-  let timeUntilArrival;
-  if (actualMinutesAway > 60) {
-    const hours = Math.floor(actualMinutesAway / 60);
-    const minutes = actualMinutesAway % 60;
-    timeUntilArrival = `${hours} hr${hours !== 1 ? 's' : ''} ${minutes} min`;
-  } 
-  else if( actualMinutesAway < -60){
-        const hours = Math.abs(Math.floor(actualMinutesAway / 60));
-        const minutes = Math.abs(actualMinutesAway % 60);
-        timeUntilArrival = `${hours} hr${hours !== 1 ? 's' : ''} ${minutes} min`;
-
-  }
-  else {
-    timeUntilArrival = `${Math.abs(actualMinutesAway)} min`;
-  }
-
-  // Determine if the train has already passed the station
-  const hasPassed = actualMinutesAway <= 0;
-  
-  // Determine the border color based on selection and approaching status
-  let borderColor = 'border-gray-200 dark:border-gray-700';
-  if (isSelected && hasRailcam) {
-    borderColor = 'border-blue-500 dark:border-blue-900/20';
-  } else if (isApproaching && hasRailcam) {
-    borderColor = 'border-green-500 dark:border-green-400';
-  }
-  
-  // Determine the background color based on selection and approaching status
-  let bgColor = 'dark:bg-gray-900';
-  if (isSelected && hasRailcam) {
-    bgColor = 'bg-blue-50 dark:bg-blue-400';
-  } else if (isApproaching && hasRailcam) {
-    bgColor = 'bg-green-50 dark:bg-green-900/20';
-  }
+  // Get styling classes using shared utilities
+  const borderColor = TrainUIUtils.getBorderColorClass(isSelected, isApproaching || false, hasRailcam);
+  const bgColor = TrainUIUtils.getBackgroundColorClass(isSelected, isApproaching || false, hasRailcam);
+  const cursorClass = TrainUIUtils.getCursorClass(hasRailcam);
+  const textColorClass = TrainUIUtils.getTextColorClass(hasRailcam);
   
   return (
     <div 
-      className={`p-3 mb-3 rounded-md border ${borderColor} ${bgColor} ${hasRailcam ? 'cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30' : 'cursor-default'} transition-colors`}
+      className={`p-3 mb-3 rounded-md border ${borderColor} ${bgColor} ${cursorClass} transition-colors`}
       onClick={() => {
         if (hasRailcam) {
           onSelectStation(trainStatus.trainId, trainStatus.nextStation || '');
@@ -103,7 +69,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center gap-2">
-            <p className={`font-medium ${hasRailcam ? 'text-gray-800 dark:text-gray-200' : 'text-gray-500 dark:text-gray-500'}`}>
+            <p className={`font-medium ${textColorClass}`}>
               {getStationByName(trainStatus.nextStation)?.name || trainStatus.nextStation}
             </p>
             {hasRailcam && (
@@ -121,11 +87,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
         </div>
         <div className="flex items-center">
           <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-100">
-            {trainStatus.estimatedArrival 
-              ? (typeof trainStatus.estimatedArrival === 'number'
-                  ? new Date(trainStatus.estimatedArrival * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  : new Date(trainStatus.estimatedArrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
-              : eta.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {displayTime}
           </span>
         </div>
       </div>
@@ -133,11 +95,7 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
 
       
       {trainStatus.status && (
-        <p className={`mt-1 text-xs ${
-          trainStatus.status === 'Early' || trainStatus.status === 'On Time'
-            ? 'text-green-500 dark:text-green-400'
-            : 'text-red-500 dark:text-red-400'
-        }`}>
+        <p className={`mt-1 text-xs ${TrainStatusUtils.getStatusColorClass(trainStatus.status)}`}>
           Status: {trainStatus.status}
         </p>
       )}

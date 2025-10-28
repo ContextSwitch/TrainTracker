@@ -3,6 +3,7 @@ import { TrainStatus as TrainStatusType, TrainApproaching } from '../types';
 import { generateStatusMessage } from '../utils/predictions';
 import { getStationByName } from '../config';
 import TrainInstance from './TrainInstance';
+import { TimeUtils, TrainStatusUtils, ErrorUtils } from '../utils/train-helpers';
 
 interface TrainStatusProps {
   trainId: string;
@@ -29,18 +30,21 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
   // Check if there are multiple train instances
   const hasMultipleInstances = allTrainStatuses && allTrainStatuses.length > 1;
 
-  if(allTrainStatuses.length > 2){
-    allTrainStatuses = allTrainStatuses.filter(stop => {
-      const est = (Math.floor((new Date()).getTime() /(1000))  - Number(stop.estimatedArrival))/60;
-      return ((stop.nextStation != 'Chicago, IL' && stop.nextStation != 'Los Angeles, CA') || (est < 180 && est > 0) || (est > -180 && est < 0))
-    })
-  }
-
-  allTrainStatuses.sort((a, b) =>{
-    return Number(a.estimatedArrival) - Number(b.estimatedArrival)
-  })
-
-  console.log("allTrainStatuses = ", allTrainStatuses)
+  // Filter and sort train statuses using shared utilities
+  const filteredStatuses = ErrorUtils.safeExecute(
+    () => TrainStatusUtils.filterStaleData(allTrainStatuses),
+    allTrainStatuses,
+    'TrainStatus.filterStaleData'
+  );
+  
+  const sortedStatuses = ErrorUtils.safeExecute(
+    () => TrainStatusUtils.sortByArrivalTime(filteredStatuses),
+    filteredStatuses,
+    'TrainStatus.sortByArrivalTime'
+  );
+  
+  // Update allTrainStatuses with the processed data
+  allTrainStatuses = sortedStatuses;
 
   // Get the selected station name from props
   const selectedStationName = selectedStation;
@@ -55,22 +59,16 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
     );
   }
 
-  // Calculate real-time minutes away for approaching train
+  // Calculate real-time minutes away for approaching train using shared utilities
   let realTimeMinutesAway = approaching.minutesAway || 0;
 
   if (approaching.approaching && approaching.eta) {
-    const now = new Date();
-    const eta = new Date(approaching.eta);
-    realTimeMinutesAway = Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
-  }
-
-  // Adjust for day boundaries (e.g., if the time wraps around midnight)
-  while(realTimeMinutesAway > 720 && realTimeMinutesAway > 0){
-    realTimeMinutesAway -=1440;
-  }
-
-  while(realTimeMinutesAway < -900 && realTimeMinutesAway < 0){
-    realTimeMinutesAway +=1440;
+    const calculatedMinutes = ErrorUtils.safeExecute(
+      () => TimeUtils.calculateMinutesAway(approaching.eta),
+      0,
+      'TrainStatus.calculateMinutesAway'
+    );
+    realTimeMinutesAway = TimeUtils.adjustForDayBoundaries(calculatedMinutes);
   }
 
   // Generate a human-readable status message with real-time minutes
@@ -120,7 +118,6 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
           {/* Always show all train instances */}
           <div>
             {allTrainStatuses.length > 0 ? (
-
               allTrainStatuses.map((status, index) => {
                 // Check if this status matches the approaching station
                 const isApproaching = approaching.approaching && 

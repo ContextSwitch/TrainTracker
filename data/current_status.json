@@ -2,16 +2,24 @@
   "train3": {
     "approaching": true,
     "station": {
-      "name": "Mendota",
-      "youtubeLink": "https://www.youtube.com/watch?v=PfL_zIxDIw0",
+      "name": "La Plata",
+      "youtubeLink": "https://www.youtube.com/watch?v=X-ir2KfXMX0",
       "enabled": true
     },
-    "eta": "2025-10-27T23:53:52.287Z",
-    "minutesAway": 0,
-    "youtubeLink": "https://www.youtube.com/embed/PfL_zIxDIw0?autoplay=1"
+    "eta": 1761610620,
+    "minutesAway": -29329386,
+    "youtubeLink": "https://www.youtube.com/embed/X-ir2KfXMX0?autoplay=1"
   },
   "train4": {
-    "approaching": false
+    "approaching": true,
+    "station": {
+      "name": "Barstow",
+      "youtubeLink": "https://www.youtube.com/watch?v=_DUQnPjPC_8",
+      "enabled": true
+    },
+    "eta": "2025-10-28T00:05:37.829Z",
+    "minutesAway": 0,
+    "youtubeLink": "https://www.youtube.com/embed/_DUQnPjPC_8?autoplay=1"
   },
-  "lastUpdated": "2025-10-27T23:53:52.287Z"
+  "lastUpdated": "2025-10-28T00:25:54.139Z"
 }

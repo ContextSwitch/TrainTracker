@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { authenticateAdmin, generateToken } from '../../../app/utils/auth';
+import { authenticateAdmin, generateToken } from '../../../app/utils/auth-server';
+import { logger } from '../../../app/utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Set cache control headers to prevent caching
@@ -13,28 +14,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    console.log('Processing login request');
+    logger.info('Processing admin login request', 'AUTH_API');
     const { password } = req.body;
 
     if (!password) {
-      console.log('No password provided');
+      logger.warn('Login attempt without password', 'AUTH_API');
       return res.status(400).json({ error: 'Password is required' });
     }
 
     // Authenticate admin
-    console.log('Authenticating admin with password');
+    logger.debug('Authenticating admin credentials', 'AUTH_API');
     const user = authenticateAdmin(password);
 
     if (!user) {
-      console.log('Authentication failed: Invalid password');
+      logger.warn('Authentication failed: Invalid password', 'AUTH_API');
       return res.status(401).json({ error: 'Invalid password' });
     }
 
     // Generate JWT token
-    console.log('Authentication successful, generating token');
+    logger.info('Authentication successful, generating token', 'AUTH_API');
     const token = generateToken(user);
     
-    console.log('Generated token for user:', user.username);
+    logger.info(`Generated token for user: ${user.username}`, 'AUTH_API');
 
     // Set cookie directly without using the cookie package
     const isProduction = process.env.NODE_ENV === 'production';
@@ -49,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Apply both cookies
     res.setHeader('Set-Cookie', [clearCookie, setCookie]);
     
-    console.log('Set admin_token cookie successfully');
+    logger.info('Set admin_token cookie successfully', 'AUTH_API');
     
     return res.status(200).json({ 
       success: true, 
@@ -57,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       timestamp: Date.now() // Add timestamp to prevent caching
     });
   } catch (error) {
-    console.error('Authentication error:', error);
+    logger.error('Authentication error', 'AUTH_API', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
