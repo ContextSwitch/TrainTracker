@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken } from '../../../app/utils/auth-server';
-import { RailcamStation } from '../../../app/types';
 import { loadStationsFromFile, saveStationsToFile } from '../../../app/utils/server-config';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

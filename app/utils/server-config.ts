@@ -185,9 +185,9 @@ export function loadStationsFromFile(): RailcamStation[] {
       
       if (config.stations && Array.isArray(config.stations)) {
         // Ensure all stations have the enabled property
-        return config.stations.map((station: any) => ({
-          ...station,
-          enabled: station.enabled !== undefined ? station.enabled : true
+        return config.stations.map((station: unknown) => ({
+          ...(station as RailcamStation),
+          enabled: (station as RailcamStation).enabled !== undefined ? (station as RailcamStation).enabled : true
         }));
       }
     }

@@ -208,7 +208,7 @@ export class ErrorUtils {
   /**
    * Validates required properties on an object
    */
-  static validateRequired<T extends Record<string, any>>(
+  static validateRequired<T extends Record<string, unknown>>(
     obj: T, 
     requiredFields: (keyof T)[]
   ): boolean {

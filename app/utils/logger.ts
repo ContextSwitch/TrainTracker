@@ -15,7 +15,7 @@ interface LogEntry {
   level: string;
   message: string;
   context?: string;
-  data?: any;
+  data?: unknown;
 }
 
 class Logger {
@@ -27,7 +27,7 @@ class Logger {
     this.logLevel = this.isDevelopment ? LogLevel.DEBUG : LogLevel.ERROR;
   }
 
-  private formatMessage(level: LogLevel, message: string, context?: string, data?: any): LogEntry {
+  private formatMessage(level: LogLevel, message: string, context?: string, data?: unknown): LogEntry {
     return {
       timestamp: new Date().toISOString(),
       level: LogLevel[level],
@@ -70,36 +70,36 @@ class Logger {
     }
   }
 
-  error(message: string, context?: string, data?: any): void {
+  error(message: string, context?: string, data?: unknown): void {
     if (this.shouldLog(LogLevel.ERROR)) {
       this.output(this.formatMessage(LogLevel.ERROR, message, context, data));
     }
   }
 
-  warn(message: string, context?: string, data?: any): void {
+  warn(message: string, context?: string, data?: unknown): void {
     if (this.shouldLog(LogLevel.WARN)) {
       this.output(this.formatMessage(LogLevel.WARN, message, context, data));
     }
   }
 
-  info(message: string, context?: string, data?: any): void {
+  info(message: string, context?: string, data?: unknown): void {
     if (this.shouldLog(LogLevel.INFO)) {
       this.output(this.formatMessage(LogLevel.INFO, message, context, data));
     }
   }
 
-  debug(message: string, context?: string, data?: any): void {
+  debug(message: string, context?: string, data?: unknown): void {
     if (this.shouldLog(LogLevel.DEBUG)) {
       this.output(this.formatMessage(LogLevel.DEBUG, message, context, data));
     }
   }
 
   // Convenience methods for common use cases
-  apiRequest(method: string, path: string, data?: any): void {
+  apiRequest(method: string, path: string, data?: unknown): void {
     this.info(`${method} ${path}`, 'API', data);
   }
 
-  apiError(method: string, path: string, error: any): void {
+  apiError(method: string, path: string, error: unknown): void {
     this.error(`${method} ${path} failed`, 'API', error);
   }
 
@@ -111,7 +111,7 @@ class Logger {
     this.info(`Successfully scraped train #${trainId}`, 'SCRAPER', { statusCount: count });
   }
 
-  scrapeError(trainId: string, error: any): void {
+  scrapeError(trainId: string, error: unknown): void {
     this.error(`Failed to scrape train #${trainId}`, 'SCRAPER', error);
   }
 
@@ -132,7 +132,7 @@ class Logger {
 export const logger = new Logger();
 
 // Export convenience functions for easier migration
-export const logError = (message: string, context?: string, data?: any) => logger.error(message, context, data);
-export const logWarn = (message: string, context?: string, data?: any) => logger.warn(message, context, data);
-export const logInfo = (message: string, context?: string, data?: any) => logger.info(message, context, data);
-export const logDebug = (message: string, context?: string, data?: any) => logger.debug(message, context, data);
+export const logError = (message: string, context?: string, data?: unknown) => logger.error(message, context, data);
+export const logWarn = (message: string, context?: string, data?: unknown) => logger.warn(message, context, data);
+export const logInfo = (message: string, context?: string, data?: unknown) => logger.info(message, context, data);
+export const logDebug = (message: string, context?: string, data?: unknown) => logger.debug(message, context, data);
