@@ -37,12 +37,12 @@
     },
     {
       "name": "Las Vegas",
-      "youtubeLink": "https://www.youtube.com/watch?v=BgmZJ-NUqiY",
-      "enabled": false
+      "youtubeLink": "https://www.youtube.com/watch?v=rz9SlRo_xzg",
+      "enabled": true
     },
     {
       "name": "Lawrence",
-      "youtubeLink": "https://www.youtube.com/watch?v=PAU2JtU4WCo",
+      "youtubeLink": "https://www.youtube.com/watch?v=r4Qc2HWKJig",
       "enabled": true
     },
     {
@@ -67,7 +67,7 @@
     },
     {
       "name": "Mendota",
-      "youtubeLink": "https://www.youtube.com/watch?v=PfL_zIxDIw0",
+      "youtubeLink": "https://www.youtube.com/watch?v=x0ymMsZ0hnk",
       "enabled": true
     },
     {
@@ -84,6 +84,12 @@
       "name": "San Bernardino",
       "youtubeLink": "",
       "enabled": false
+    },
+    {
+      "name": "Cajon Pass",
+      "youtubeLink": "https://www.youtube.com/watch?v=95prlnW7YlM",
+      "enabled": true,
+      "isScenic": true
     },
     {
       "name": "Victorville",

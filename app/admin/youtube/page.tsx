@@ -25,7 +25,9 @@ export default function YouTubeManagementPage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/admin/stations');
+      // Add timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/admin/stations?t=${timestamp}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch stations configuration');
@@ -64,8 +66,8 @@ export default function YouTubeManagementPage() {
       throw new Error(result.error || 'Failed to update stations configuration');
     }
     
-    // Update the local state with the new stations
-    setStations(result.stations);
+    // Refetch stations from the server to ensure we have the latest data
+    await fetchStations();
   };
 
   return (

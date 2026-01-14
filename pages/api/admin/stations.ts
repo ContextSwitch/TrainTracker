@@ -3,6 +3,11 @@ import { verifyToken } from '../../../app/utils/auth-server';
 import { loadStationsFromFile, saveStationsToFile } from '../../../app/utils/server-config';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Set cache control headers to prevent caching
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
   // Check authentication
   try {
     const authHeader = req.headers['x-admin-auth'];
@@ -68,10 +73,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             error: 'Each station must have a valid name' 
           });
         }
-        if (!station.youtubeLink || typeof station.youtubeLink !== 'string') {
+        // Allow empty strings for youtubeLink, but it must be a string
+        if (typeof station.youtubeLink !== 'string') {
           return res.status(400).json({ 
             success: false,
-            error: 'Each station must have a valid youtubeLink' 
+            error: 'Each station must have a youtubeLink property (can be empty string)' 
           });
         }
         // Set default enabled value if not provided

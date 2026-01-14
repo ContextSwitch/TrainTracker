@@ -2,7 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
 import { CurrentStatus, TrainStatus } from '../../app/types';
-import { getStationByName, getYoutubeEmbedUrl } from '../../app/config';
+import { getYoutubeEmbedUrl } from '../../app/config';
+import { loadStationsFromFile } from '../../app/utils/server-config';
 
 /**
  * API route to update the current viewing selection
@@ -25,8 +26,37 @@ export default function handler(
       return res.status(400).json({ error: 'Train ID and station name are required' });
     }
     
-    // Find the station by name
-    const station = getStationByName(stationName);
+    // Load stations from file and find the station by name
+    const stations = loadStationsFromFile();
+    const station = stations.find(s => {
+      if (!stationName) return false;
+      
+      // Clean up the name by removing state abbreviations and commas
+      const cleanName = stationName.replace(/,\s*[A-Z]{2}$/, '').trim();
+      
+      // Special case for Kansas City
+      if (cleanName === 'Kansas City') {
+        return s.name.startsWith('Kansas City');
+      }
+      
+      // First try exact match
+      if (s.name.toLowerCase() === cleanName.toLowerCase()) {
+        return true;
+      }
+      
+      // If no exact match, try partial match with the city name only
+      const cityName = cleanName.split(' - ')[0].trim();
+      const stationCity = s.name.split(' - ')[0].trim().toLowerCase();
+      if (stationCity === cityName.toLowerCase() || 
+          stationCity.includes(cityName.toLowerCase()) || 
+          cityName.toLowerCase().includes(stationCity)) {
+        return true;
+      }
+      
+      // If still no match, try a more general partial match
+      return s.name.toLowerCase().includes(cleanName.toLowerCase()) ||
+             cleanName.toLowerCase().includes(s.name.toLowerCase());
+    });
     
     if (!station) {
       return res.status(404).json({ error: 'Station not found' });
@@ -43,15 +73,15 @@ export default function handler(
       currentStatus = JSON.parse(data);
     } else {
       currentStatus = {
-        train3: { approaching: false },
-        train4: { approaching: false },
+        westboundTrain: { approaching: false },
+        eastboundTrain: { approaching: false },
         lastUpdated: new Date().toISOString()
       };
     }
     
     // Try to get the train status data to preserve accurate ETA and minutesAway
-    let eta = new Date().toISOString();
-    let minutesAway = 0;
+    let estimatedArrivalTime = new Date().toISOString();
+    let minutesUntilArrival = 0;
     
     try {
       // Get the train status data
@@ -74,12 +104,12 @@ export default function handler(
         
         // Calculate accurate ETA and minutesAway
         if (selectedTrainStatus && selectedTrainStatus.estimatedArrival) {
-          eta = selectedTrainStatus.estimatedArrival;
-          const now = new Date();
-          const etaDate = new Date(eta);
-          minutesAway = Math.floor((etaDate.getTime() - now.getTime()) / (1000 * 60));
-          if(minutesAway < -900){
-            minutesAway+=1440;
+          estimatedArrivalTime = selectedTrainStatus.estimatedArrival;
+          const currentTime = new Date();
+          const arrivalDate = new Date(estimatedArrivalTime);
+          minutesUntilArrival = Math.floor((arrivalDate.getTime() - currentTime.getTime()) / (1000 * 60));
+          if(minutesUntilArrival < -900){
+            minutesUntilArrival += 1440;
           }
 
         } else {
@@ -93,30 +123,30 @@ export default function handler(
     
     // Update the current status based on the train ID
     if (trainId === '3') {
-      currentStatus.train3 = {
+      currentStatus.westboundTrain = {
         approaching: true,
         station,
-        eta: eta,
-        minutesAway: minutesAway,
+        eta: estimatedArrivalTime,
+        minutesAway: minutesUntilArrival,
         youtubeLink: getYoutubeEmbedUrl(station.youtubeLink)
       };
       
       // If we're selecting train 3, make sure train 4 is not selected
-      if (currentStatus.train4.approaching && currentStatus.train4.station?.name === stationName) {
-        currentStatus.train4.approaching = false;
+      if (currentStatus.eastboundTrain?.approaching && currentStatus.eastboundTrain?.station?.name === stationName) {
+        currentStatus.eastboundTrain.approaching = false;
       }
     } else if (trainId === '4') {
-      currentStatus.train4 = {
+      currentStatus.eastboundTrain = {
         approaching: true,
         station,
-        eta: eta,
-        minutesAway: minutesAway,
+        eta: estimatedArrivalTime,
+        minutesAway: minutesUntilArrival,
         youtubeLink: getYoutubeEmbedUrl(station.youtubeLink)
       };
       
       // If we're selecting train 4, make sure train 3 is not selected
-      if (currentStatus.train3.approaching && currentStatus.train3.station?.name === stationName) {
-        currentStatus.train3.approaching = false;
+      if (currentStatus.westboundTrain?.approaching && currentStatus.westboundTrain?.station?.name === stationName) {
+        currentStatus.westboundTrain.approaching = false;
       }
     } else {
       return res.status(400).json({ error: 'Invalid train ID' });

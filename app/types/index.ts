@@ -23,6 +23,7 @@ export interface RailcamStation {
   name: string;             // Station name
   youtubeLink: string;      // YouTube embed link
   enabled?: boolean;        // Whether the station is enabled (defaults to true)
+  isScenic?: boolean;       // Whether this is a scenic viewpoint (not an actual train stop)
   coordinates?: {           // Optional coordinates for mapping
     lat: number;
     lng: number;
@@ -31,8 +32,8 @@ export interface RailcamStation {
 
 // Current status for the frontend
 export interface CurrentStatus {
-  train3: TrainApproaching; // Westbound (East to West)
-  train4: TrainApproaching; // Eastbound (West to East)
+  westboundTrain: TrainApproaching; // Westbound (East to West) - Train #3
+  eastboundTrain: TrainApproaching; // Eastbound (West to East) - Train #4
   lastUpdated: string;      // ISO date string
 }
 

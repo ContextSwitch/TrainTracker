@@ -21,6 +21,11 @@ const YouTubeUrlEditor: React.FC<YouTubeUrlEditorProps> = ({ stations, onSave })
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  // Sync edited stations when the stations prop changes (e.g., after refetch)
+  React.useEffect(() => {
+    setEditedStations(stations);
+  }, [stations]);
+
   const handleUrlChange = (index: number, newUrl: string) => {
     const newStations = [...editedStations];
     newStations[index] = { ...newStations[index], youtubeLink: newUrl };

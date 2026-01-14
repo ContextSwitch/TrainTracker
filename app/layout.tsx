@@ -69,7 +69,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <AnalyticsScripts /> {/* Render the new component here */}
+        <AnalyticsScripts />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

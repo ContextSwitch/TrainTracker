@@ -7,12 +7,13 @@ import TrainStatusComponent from '../components/TrainStatus';
 import NotificationManager from '../components/NotificationManager';
 import ThemeToggle from '../components/ThemeToggle';
 import RouteStations from '../components/RouteStations';
+import { loadStationsFromAPI } from '../config';
 
 export default function Home() {
   // State to store the current status
   const [currentStatus, setCurrentStatus] = useState<CurrentStatus>({
-    train3: { approaching: false },
-    train4: { approaching: false },
+    westboundTrain: { approaching: false },
+    eastboundTrain: { approaching: false },
     lastUpdated: new Date().toISOString()
   });
   
@@ -124,9 +125,9 @@ export default function Home() {
       console.log('-----updatedStatus', updatedStatus)
       // Update the showVideoFor state based on the selected train
       if (trainId === '3') {
-        setShowVideoFor(updatedStatus.train3);
+        setShowVideoFor(updatedStatus.westboundTrain);
       } else {
-        setShowVideoFor(updatedStatus.train4);
+        setShowVideoFor(updatedStatus.eastboundTrain);
       }
       
       // Only update the selected train's information, not the entire status
@@ -134,12 +135,12 @@ export default function Home() {
         if (trainId === '3') {
           return {
             ...prevStatus,
-            train3: updatedStatus.train3
+            westboundTrain: updatedStatus.westboundTrain
           };
         } else {
           return {
             ...prevStatus,
-            train4: updatedStatus.train4
+            eastboundTrain: updatedStatus.eastboundTrain
           };
         }
       });
@@ -151,11 +152,25 @@ export default function Home() {
     }
   };
   
-  // Fetch the current status on mount and set up polling
+  // Load stations configuration and fetch initial status on mount
   useEffect(() => {
     console.log('in useEffect')
-    // Fetch the initial status
-    fetchCurrentStatus();
+    
+    // Load stations configuration first
+    const initializeApp = async () => {
+      try {
+        await loadStationsFromAPI();
+        console.log('Stations loaded successfully');
+      } catch (error) {
+        console.error('Error loading stations:', error);
+        // Continue with app initialization even if stations fail to load
+      }
+      
+      // Fetch the initial status
+      await fetchCurrentStatus();
+    };
+    
+    initializeApp();
     
     // Set up polling every 5 minutes
     const intervalId = setInterval(() => {
@@ -172,10 +187,10 @@ export default function Home() {
   // Initialize showVideoFor based on approaching trains
   useEffect(() => {
     if (!showVideoFor) {
-      if (currentStatus.train3.approaching) {
-        setShowVideoFor(currentStatus.train3);
-      } else if (currentStatus.train4.approaching) {
-        setShowVideoFor(currentStatus.train4);
+      if (currentStatus?.westboundTrain?.approaching) {
+        setShowVideoFor(currentStatus.westboundTrain);
+      } else if (currentStatus?.eastboundTrain?.approaching) {
+        setShowVideoFor(currentStatus.eastboundTrain);
       }
     }
   }, [currentStatus, showVideoFor]);
@@ -249,7 +264,7 @@ export default function Home() {
                   <YouTubePlayer videoUrl={showVideoFor.youtubeLink} />
                 </div>
                 <p hidden className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                  Train #{showVideoFor === currentStatus.train3 ? '3' : '4'} is approaching this location
+                  Train #{showVideoFor === currentStatus.westboundTrain ? '3' : '4'} is approaching this location
                 </p>
               </div>
             ) : (
@@ -267,7 +282,7 @@ export default function Home() {
                 trainId="3"
                 trainStatus={train3Statuses.length > 0 ? train3Statuses[0] : null}
                 direction="Los Angeles"
-                approaching={currentStatus.train3}
+                approaching={currentStatus.westboundTrain}
                 allTrainStatuses={train3Statuses}
                 onSelectStation={handleSelectStation}
                 selectedStation={showVideoFor?.station?.name}
@@ -276,7 +291,7 @@ export default function Home() {
                 trainId="4"
                 trainStatus={train4Statuses.length > 0 ? train4Statuses[0] : null}
                 direction="Chicago"
-                approaching={currentStatus.train4}
+                approaching={currentStatus.eastboundTrain}
                 allTrainStatuses={train4Statuses}
                 onSelectStation={handleSelectStation}
                 selectedStation={showVideoFor?.station?.name}
@@ -285,8 +300,8 @@ export default function Home() {
             
             {/* Notification manager */}
             <NotificationManager
-              train3={currentStatus.train3}
-              train4={currentStatus.train4}
+              train3={currentStatus.westboundTrain}
+              train4={currentStatus.eastboundTrain}
             />
             
             {/* Update and Clear buttons */}

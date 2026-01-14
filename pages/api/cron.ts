@@ -42,10 +42,10 @@ export default async function handler(
   // Check if it's been at least 15 minutes since the last run
   // This prevents excessive scraping if the cron job is called too frequently
   // Skip this check if the request has a 'force=true' query parameter
-  const now = new Date();
-  const forceUpdate = req.query.force === 'true';
+  const currentTime = new Date();
+  const shouldForceUpdate = req.query.force === 'true';
   
-  if (!forceUpdate && lastRun && (now.getTime() - lastRun.getTime()) < 15 * 60 * 1000) {
+  if (!shouldForceUpdate && lastRun && (currentTime.getTime() - lastRun.getTime()) < 15 * 60 * 1000) {
     logger.info('Skipping update - last update was less than 15 minutes ago', 'CRON');
     return res.status(200).json({
       success: true,
@@ -56,7 +56,7 @@ export default async function handler(
   
   try {
     // Update the last run time
-    lastRun = now;
+    lastRun = currentTime;
     
     // Load the latest stations configuration from JSON file
     logger.info('Loading stations configuration from JSON file', 'CRON');
@@ -94,7 +94,7 @@ export default async function handler(
     res.status(200).json({
       success: true,
       message: 'Successfully updated train data',
-      lastRun: now.toISOString()
+      lastRun: currentTime.toISOString()
     });
   } catch (error) {
     logger.error('Error in cron job', 'CRON', error);
@@ -235,8 +235,8 @@ function updateCurrentStatus(train3Status: TrainStatus, train4Status: TrainStatu
   
   // Create the current status object
   const currentStatus: CurrentStatus = {
-    train3: train3Approaching,
-    train4: train4Approaching,
+    westboundTrain: train3Approaching,
+    eastboundTrain: train4Approaching,
     lastUpdated: new Date().toISOString()
   };
   

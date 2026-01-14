@@ -2,13 +2,13 @@
   "train3": {
     "approaching": true,
     "station": {
-      "name": "La Plata",
-      "youtubeLink": "https://www.youtube.com/watch?v=X-ir2KfXMX0",
-      "enabled": true
+      "name": "Las Vegas",
+      "youtubeLink": "https://www.youtube.com/watch?v=BgmZJ-NUqiY",
+      "enabled": false
     },
-    "eta": 1761610620,
-    "minutesAway": -29329386,
-    "youtubeLink": "https://www.youtube.com/embed/X-ir2KfXMX0?autoplay=1"
+    "eta": "2025-10-30T20:46:41.911Z",
+    "minutesAway": 0,
+    "youtubeLink": "https://www.youtube.com/embed/BgmZJ-NUqiY?autoplay=1"
   },
   "train4": {
     "approaching": true,
@@ -21,5 +21,27 @@
     "minutesAway": 0,
     "youtubeLink": "https://www.youtube.com/embed/_DUQnPjPC_8?autoplay=1"
   },
-  "lastUpdated": "2025-10-28T00:25:54.139Z"
+  "lastUpdated": "2026-01-14T00:41:32.502Z",
+  "eastboundTrain": {
+    "approaching": true,
+    "station": {
+      "name": "Lawrence",
+      "youtubeLink": "https://www.youtube.com/watch?v=r4Qc2HWKJig",
+      "enabled": true
+    },
+    "eta": "2026-01-14T00:41:32.501Z",
+    "minutesAway": 0,
+    "youtubeLink": "https://www.youtube.com/embed/r4Qc2HWKJig?autoplay=1"
+  },
+  "westboundTrain": {
+    "approaching": true,
+    "station": {
+      "name": "La Plata",
+      "youtubeLink": "https://www.youtube.com/watch?v=X-ir2KfXMX0",
+      "enabled": true
+    },
+    "eta": 1761610620,
+    "minutesAway": -29441708,
+    "youtubeLink": "https://www.youtube.com/embed/X-ir2KfXMX0?autoplay=1"
+  }
 }

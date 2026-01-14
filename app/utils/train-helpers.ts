@@ -6,6 +6,19 @@
 import { TrainStatus } from '../types';
 
 /**
+ * Time-related constants for calculations
+ */
+const TIME_CONSTANTS = {
+  MILLISECONDS_PER_MINUTE: 1000 * 60,
+  MINUTES_PER_HOUR: 60,
+  MINUTES_PER_DAY: 1440,
+  MIDNIGHT_WRAPAROUND_THRESHOLD: 720,
+  STALE_DATA_CUTOFF_MINUTES: 900,
+  POST_ARRIVAL_WINDOW_HOURS: 3,
+  PRE_DEPARTURE_WINDOW_HOURS: 3
+} as const;
+
+/**
  * Time formatting and calculation utilities
  */
 export class TimeUtils {
@@ -15,27 +28,27 @@ export class TimeUtils {
   static calculateMinutesAway(estimatedArrival: string | number | undefined): number {
     if (!estimatedArrival) return 0;
     
-    const now = new Date();
-    const eta = typeof estimatedArrival === 'number' 
+    const currentTime = new Date();
+    const estimatedArrivalTime = typeof estimatedArrival === 'number' 
       ? new Date(estimatedArrival * 1000) 
       : new Date(estimatedArrival);
     
-    return Math.floor((eta.getTime() - now.getTime()) / (1000 * 60));
+    return Math.floor((estimatedArrivalTime.getTime() - currentTime.getTime()) / TIME_CONSTANTS.MILLISECONDS_PER_MINUTE);
   }
 
   /**
    * Adjusts minutes for day boundaries (handles midnight wraparound)
    */
-  static adjustForDayBoundaries(minutes: number): number {
-    let adjustedMinutes = minutes;
+  static adjustForDayBoundaries(minutesUntilArrival: number): number {
+    let adjustedMinutes = minutesUntilArrival;
     
     // Adjust for day boundaries (e.g., if the time wraps around midnight)
-    while (adjustedMinutes > 720 && adjustedMinutes > 0) {
-      adjustedMinutes -= 1440; // Subtract 24 hours
+    while (adjustedMinutes > TIME_CONSTANTS.MIDNIGHT_WRAPAROUND_THRESHOLD && adjustedMinutes > 0) {
+      adjustedMinutes -= TIME_CONSTANTS.MINUTES_PER_DAY; // Subtract 24 hours
     }
     
-    while (adjustedMinutes < -900 && adjustedMinutes < 0) {
-      adjustedMinutes += 1440; // Add 24 hours
+    while (adjustedMinutes < -TIME_CONSTANTS.STALE_DATA_CUTOFF_MINUTES && adjustedMinutes < 0) {
+      adjustedMinutes += TIME_CONSTANTS.MINUTES_PER_DAY; // Add 24 hours
     }
     
     return adjustedMinutes;
@@ -44,16 +57,16 @@ export class TimeUtils {
   /**
    * Formats minutes into a human-readable time string
    */
-  static formatTimeUntilArrival(minutes: number): string {
-    const absMinutes = Math.abs(minutes);
+  static formatTimeUntilArrival(minutesUntilArrival: number): string {
+    const absoluteMinutes = Math.abs(minutesUntilArrival);
     
-    if (absMinutes > 60) {
-      const hours = Math.floor(absMinutes / 60);
-      const remainingMinutes = absMinutes % 60;
+    if (absoluteMinutes > TIME_CONSTANTS.MINUTES_PER_HOUR) {
+      const hours = Math.floor(absoluteMinutes / TIME_CONSTANTS.MINUTES_PER_HOUR);
+      const remainingMinutes = absoluteMinutes % TIME_CONSTANTS.MINUTES_PER_HOUR;
       return `${hours} hr${hours !== 1 ? 's' : ''} ${remainingMinutes} min`;
     }
     
-    return `${absMinutes} min`;
+    return `${absoluteMinutes} min`;
   }
 
   /**
@@ -62,18 +75,18 @@ export class TimeUtils {
   static formatDisplayTime(estimatedArrival: string | number | undefined): string {
     if (!estimatedArrival) return '--:--';
     
-    const eta = typeof estimatedArrival === 'number'
+    const estimatedArrivalTime = typeof estimatedArrival === 'number'
       ? new Date(estimatedArrival * 1000)
       : new Date(estimatedArrival);
     
-    return eta.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return estimatedArrivalTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
   /**
    * Determines if a train has already passed a station
    */
-  static hasPassed(minutes: number): boolean {
-    return minutes <= 0;
+  static hasPassed(minutesUntilArrival: number): boolean {
+    return minutesUntilArrival <= 0;
   }
 }
 
@@ -109,21 +122,24 @@ export class TrainStatusUtils {
       return trainStatuses;
     }
 
-    return trainStatuses.filter(status => {
-      if (!status.estimatedArrival) return false;
+    const timeWindowMinutes = TIME_CONSTANTS.POST_ARRIVAL_WINDOW_HOURS * TIME_CONSTANTS.MINUTES_PER_HOUR;
+
+    return trainStatuses.filter(trainStatus => {
+      if (!trainStatus.estimatedArrival) return false;
       
-      const estimatedArrivalTime = typeof status.estimatedArrival === 'number' 
-        ? status.estimatedArrival 
-        : Math.floor(new Date(status.estimatedArrival).getTime() / 1000);
+      const estimatedArrivalTimestamp = typeof trainStatus.estimatedArrival === 'number' 
+        ? trainStatus.estimatedArrival 
+        : Math.floor(new Date(trainStatus.estimatedArrival).getTime() / 1000);
       
-      const currentTime = Math.floor(Date.now() / 1000);
-      const minutesDiff = (currentTime - estimatedArrivalTime) / 60;
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const minutesDifference = (currentTimestamp - estimatedArrivalTimestamp) / TIME_CONSTANTS.MINUTES_PER_HOUR;
       
       // Keep if not at final destination OR within 3 hours of arrival/departure
-      const isNotFinalDestination = status.nextStation !== 'Chicago, IL' && status.nextStation !== 'Los Angeles, CA';
-      const isWithinTimeWindow = (minutesDiff < 180 && minutesDiff > 0) || (minutesDiff > -180 && minutesDiff < 0);
+      const isNotAtFinalDestination = trainStatus.nextStation !== 'Chicago, IL' && trainStatus.nextStation !== 'Los Angeles, CA';
+      const isWithinTimeWindow = (minutesDifference < timeWindowMinutes && minutesDifference > 0) || 
+                                (minutesDifference > -timeWindowMinutes && minutesDifference < 0);
       
-      return isNotFinalDestination || isWithinTimeWindow;
+      return isNotAtFinalDestination || isWithinTimeWindow;
     });
   }
 
@@ -131,13 +147,18 @@ export class TrainStatusUtils {
    * Sorts train statuses by estimated arrival time
    */
   static sortByArrivalTime(trainStatuses: TrainStatus[]): TrainStatus[] {
-    return [...trainStatuses].sort((a, b) => {
-      if (!a.estimatedArrival) return 1;
-      if (!b.estimatedArrival) return -1;
+    return [...trainStatuses].sort((firstTrain, secondTrain) => {
+      if (!firstTrain.estimatedArrival) return 1;
+      if (!secondTrain.estimatedArrival) return -1;
       
-      const timeA = typeof a.estimatedArrival === 'number' ? a.estimatedArrival : new Date(a.estimatedArrival).getTime() / 1000;
-      const timeB = typeof b.estimatedArrival === 'number' ? b.estimatedArrival : new Date(b.estimatedArrival).getTime() / 1000;
-      return timeA - timeB;
+      const firstTrainTimestamp = typeof firstTrain.estimatedArrival === 'number' 
+        ? firstTrain.estimatedArrival 
+        : new Date(firstTrain.estimatedArrival).getTime() / 1000;
+      const secondTrainTimestamp = typeof secondTrain.estimatedArrival === 'number' 
+        ? secondTrain.estimatedArrival 
+        : new Date(secondTrain.estimatedArrival).getTime() / 1000;
+      
+      return firstTrainTimestamp - secondTrainTimestamp;
     });
   }
 }
@@ -194,14 +215,14 @@ export class ErrorUtils {
   /**
    * Safely handles errors with fallback values
    */
-  static safeExecute<T>(fn: () => T, fallback: T, context?: string): T {
+  static safeExecute<T>(operation: () => T, fallbackValue: T, contextDescription?: string): T {
     try {
-      return fn();
+      return operation();
     } catch (error) {
-      if (context && process.env.NODE_ENV === 'development') {
-        console.warn(`Error in ${context}:`, error);
+      if (contextDescription && process.env.NODE_ENV === 'development') {
+        console.warn(`Error in ${contextDescription}:`, error);
       }
-      return fallback;
+      return fallbackValue;
     }
   }
 
@@ -209,9 +230,9 @@ export class ErrorUtils {
    * Validates required properties on an object
    */
   static validateRequired<T extends Record<string, unknown>>(
-    obj: T, 
+    targetObject: T, 
     requiredFields: (keyof T)[]
   ): boolean {
-    return requiredFields.every(field => obj[field] != null);
+    return requiredFields.every(fieldName => targetObject[fieldName] != null);
   }
 }

@@ -26,8 +26,8 @@ export default function handler(
       logger.warn('Current status file does not exist, returning default status', 'STATUS_API');
       // Return a default status if the file doesn't exist
       return res.status(200).json({
-        train3: { approaching: false },
-        train4: { approaching: false },
+        westboundTrain: { approaching: false },
+        eastboundTrain: { approaching: false },
         lastUpdated: new Date().toISOString()
       });
     }
@@ -45,8 +45,8 @@ export default function handler(
     
     // Return a default status in case of error
     res.status(200).json({
-      train3: { approaching: false },
-      train4: { approaching: false },
+      westboundTrain: { approaching: false },
+      eastboundTrain: { approaching: false },
       lastUpdated: new Date().toISOString()
     });
   }

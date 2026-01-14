@@ -31,15 +31,15 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
   const hasRailcam = !!(station && station.enabled);
   
   // Calculate time-related values using shared utilities
-  const actualMinutesAway = ErrorUtils.safeExecute(
+  const minutesUntilArrival = ErrorUtils.safeExecute(
     () => TimeUtils.calculateMinutesAway(trainStatus.estimatedArrival),
     0,
     'TrainInstance.calculateMinutesAway'
   );
   
-  const timeUntilArrival = TimeUtils.formatTimeUntilArrival(actualMinutesAway);
-  const hasPassed = TimeUtils.hasPassed(actualMinutesAway);
-  const displayTime = TimeUtils.formatDisplayTime(trainStatus.estimatedArrival);
+  const formattedTimeUntilArrival = TimeUtils.formatTimeUntilArrival(minutesUntilArrival);
+  const hasTrainPassed = TimeUtils.hasPassed(minutesUntilArrival);
+  const formattedDisplayTime = TimeUtils.formatDisplayTime(trainStatus.estimatedArrival);
   
   // Get styling classes using shared utilities
   const borderColor = TrainUIUtils.getBorderColorClass(isSelected, isApproaching || false, hasRailcam);
@@ -80,15 +80,15 @@ const TrainInstance: React.FC<TrainInstanceProps> = ({
             )}
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {hasPassed 
-              ? `Expected ${timeUntilArrival} ago` 
-              : `Estimated in ${timeUntilArrival}`
+            {hasTrainPassed 
+              ? `Expected ${formattedTimeUntilArrival} ago` 
+              : `Estimated in ${formattedTimeUntilArrival}`
             }
           </p>
         </div>
         <div className="flex items-center">
           <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-100">
-            {displayTime}
+            {formattedDisplayTime}
           </span>
         </div>
       </div>

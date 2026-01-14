@@ -2,6 +2,11 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { loadStationsFromFile } from '../../app/utils/server-config';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Set cache control headers to prevent caching
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
   // Only allow GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });

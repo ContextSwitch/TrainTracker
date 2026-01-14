@@ -60,23 +60,26 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
   }
 
   // Calculate real-time minutes away for approaching train using shared utilities
-  let realTimeMinutesAway = approaching.minutesAway || 0;
+  let minutesUntilTrainArrival = approaching?.minutesAway || 0;
 
-  if (approaching.approaching && approaching.eta) {
-    const calculatedMinutes = ErrorUtils.safeExecute(
+  if (approaching?.approaching && approaching.eta) {
+    const calculatedMinutesAway = ErrorUtils.safeExecute(
       () => TimeUtils.calculateMinutesAway(approaching.eta),
       0,
       'TrainStatus.calculateMinutesAway'
     );
-    realTimeMinutesAway = TimeUtils.adjustForDayBoundaries(calculatedMinutes);
+    minutesUntilTrainArrival = TimeUtils.adjustForDayBoundaries(calculatedMinutesAway);
   }
 
   // Generate a human-readable status message with real-time minutes
-  const updatedApproaching = {
+  const updatedApproachingInfo = approaching ? {
     ...approaching,
-    minutesAway: realTimeMinutesAway
+    minutesAway: minutesUntilTrainArrival
+  } : {
+    approaching: false,
+    minutesAway: 0
   };
-  const statusMessage = generateStatusMessage(trainStatus, updatedApproaching);
+  const statusMessage = generateStatusMessage(trainStatus, updatedApproachingInfo);
 
   // Use neutral background color regardless of approaching status
   const statusColor = 'bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-800';
@@ -120,14 +123,14 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
             {allTrainStatuses.length > 0 ? (
               allTrainStatuses.map((status, index) => {
                 // Check if this status matches the approaching station
-                const isApproaching = approaching.approaching && 
-                  approaching.station && 
+                const isApproaching = approaching?.approaching && 
+                  approaching?.station && 
                   status.nextStation === approaching.station.name;
                 
                 // If this is the approaching station, update its ETA
                 const updatedStatus = isApproaching ? {
                   ...status,
-                  estimatedArrival: approaching.eta || status.estimatedArrival
+                  estimatedArrival: approaching?.eta || status.estimatedArrival
                 } : status;
                 
                 return (
@@ -149,7 +152,7 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
               // If there are no instances in the array but we have a trainStatus, show it
               trainStatus && (
                 <TrainInstance
-                  trainStatus={approaching.approaching && approaching.eta ? {
+                  trainStatus={approaching?.approaching && approaching?.eta ? {
                     ...trainStatus,
                     estimatedArrival: approaching.eta
                   } : trainStatus}
@@ -158,8 +161,8 @@ const TrainStatus: React.FC<TrainStatusProps> = ({
                     getStationByName(selectedStationName)?.name === 
                     getStationByName(trainStatus.nextStation)?.name : false
                   }
-                  isApproaching={approaching.approaching && 
-                    approaching.station && 
+                  isApproaching={approaching?.approaching && 
+                    approaching?.station && 
                     getStationByName(trainStatus.nextStation)?.name === 
                     getStationByName(approaching.station.name)?.name}
                   onSelectStation={onSelectStation}

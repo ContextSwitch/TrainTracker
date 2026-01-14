@@ -80,7 +80,9 @@ const RouteStations: React.FC<RouteStationsProps> = ({
   useEffect(() => {
     const loadStations = async () => {
       try {
-        const response = await fetch('/api/stations-config');
+        // Add timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        const response = await fetch(`/api/stations-config?t=${timestamp}`);
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.stations) {
@@ -120,7 +122,7 @@ const RouteStations: React.FC<RouteStationsProps> = ({
     'Chicago', 'Naperville', 'Mendota', 'Princeton', 'Galesburg', 'Fort Madison', 'La Plata', 
     'Kansas City', 'Lawrence', 'Topeka', 'Newton', 'Hutchinson', 'Dodge City', 'Garden City', 
     'Lamar', 'La Junta', 'Trinidad', 'Raton', 'Las Vegas', 'Lamy', 'Albuquerque', 'Gallup', 
-    'Winslow', 'Flagstaff', 'Kingman', 'Needles', 'Barstow', 'Victorville', 'San Bernardino', 
+    'Winslow', 'Flagstaff', 'Kingman', 'Needles', 'Barstow', 'Victorville', 'Cajon Pass', 'San Bernardino', 
     'Riverside', 'Fullerton', 'Los Angeles'
   ];
   
@@ -225,7 +227,12 @@ const RouteStations: React.FC<RouteStationsProps> = ({
                         Next
                       </div>
                     )}
-                    {hasRailcam && (
+                    {hasRailcam && station?.isScenic && (
+                      <div className="bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-100 text-xs px-1.5 py-0.5 rounded">
+                        Scenic
+                      </div>
+                    )}
+                    {hasRailcam && !station?.isScenic && (
                       <div className="bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 text-xs px-1.5 py-0.5 rounded">
                         Railcam
                       </div>
