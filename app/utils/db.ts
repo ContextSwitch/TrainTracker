@@ -72,8 +72,8 @@ export async function saveCurrentStatus(currentStatus: CurrentStatus): Promise<v
     TableName: CURRENT_STATUS_TABLE,
     Item: {
       id: 'current', // Use a fixed ID for the current status
-      train3: currentStatus.train3,
-      train4: currentStatus.train4,
+      westboundTrain: currentStatus.westboundTrain,
+      eastboundTrain: currentStatus.eastboundTrain,
       lastUpdated: new Date().toISOString()
     }
   };

@@ -189,8 +189,8 @@ export function updateCurrentStatus(): void {
   
   // Create the current status object
   const currentStatus: CurrentStatus = {
-    train3: train3Approaching,
-    train4: train4Approaching,
+    westboundTrain: train3Approaching,
+    eastboundTrain: train4Approaching,
     lastUpdated: new Date().toISOString()
   };
   
@@ -209,8 +209,8 @@ export function updateCurrentStatus(): void {
 export function getCurrentStatus(): CurrentStatus {
   if (!fs.existsSync(CURRENT_STATUS_FILE)) {
     return {
-      train3: { approaching: false },
-      train4: { approaching: false },
+      westboundTrain: { approaching: false },
+      eastboundTrain: { approaching: false },
       lastUpdated: new Date().toISOString()
     };
   }
@@ -221,8 +221,8 @@ export function getCurrentStatus(): CurrentStatus {
   } catch (error) {
     console.error('Error reading current status file:', error);
     return {
-      train3: { approaching: false },
-      train4: { approaching: false },
+      westboundTrain: { approaching: false },
+      eastboundTrain: { approaching: false },
       lastUpdated: new Date().toISOString()
     };
   }
